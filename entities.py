@@ -220,19 +220,35 @@ class Fighter(GameObject, BaseFighter):
         self._sheet = load_image(self.SHEET_PATH)
         self._frames = self._slice_sheet()
 
+
     def _slice_sheet(self) -> dict[str, list[pygame.Surface]]:
-        """ตัด sprite sheet เป็นเฟรม: แถว 0=idle, 1=attack, 2=ko  แต่ละแถว 4 เฟรม"""
-        frames: dict[str, list[pygame.Surface]] = {"idle": [], "attack": [], "ko": []}
+        """Sprite sheet rows: 0=idle, 1=walk, 2=attack, 3=ko"""
+        frames = {
+            "idle": [],
+            "walk": [],
+            "attack": [],
+            "ko": []
+        }
+
         fw, fh = 80, 180
-        poses = ["idle", "attack", "ko"]
+        poses = ["idle", "walk", "attack", "ko"]
+
         for row, pose in enumerate(poses):
             for col in range(4):
                 rect = pygame.Rect(col * fw, row * fh, fw, fh)
-                if self._sheet.get_width() >= rect.right and self._sheet.get_height() >= rect.bottom:
-                    frames[pose].append(self._sheet.subsurface(rect).copy())
+
+                if (self._sheet.get_width() >= rect.right
+                        and self._sheet.get_height() >= rect.bottom):
+                    frames[pose].append(
+                        self._sheet.subsurface(rect).copy()
+                    )
                 else:
-                    frames[pose].append(pygame.Surface((fw, fh), pygame.SRCALPHA))
+                    frames[pose].append(
+                        pygame.Surface((fw, fh), pygame.SRCALPHA)
+                    )
+
         return frames
+
 
     def _validate_percent(self, value: float) -> float:
         if not isinstance(value, (int, float)) or isinstance(value, bool):
@@ -519,7 +535,15 @@ class Fighter(GameObject, BaseFighter):
         shadow.center = (self.rect.centerx, S.GROUND_Y + 2)
         pygame.draw.ellipse(surface, (150, 100, 0), shadow)
 
-        pose_key = "ko" if self.is_ko else ("attack" if self._pose in ("punch", "uppercut", "rush", "throw", "cast", "attack") else "idle")
+        if self.is_ko:
+            pose_key = "ko"
+        elif self._pose in ("punch", "uppercut", "rush", "throw", "cast", "attack"):
+            pose_key = "attack"
+        elif self.state_machine.state == State.WALK:
+            pose_key = "walk"
+        else:
+            pose_key = "idle"
+
         frames = self._frames.get(pose_key, self._frames["idle"])
         if not frames:
             return
@@ -543,8 +567,8 @@ class Fighter(GameObject, BaseFighter):
         surface.blit(img, img.get_rect(center=r.center))
 
 
-class Kai(Fighter):
-    NAME = "KAI"
+class Jack(Fighter):
+    NAME = "T. Jack"
     TITLE = "THE URBAN BRAWLER"
     BASE_STATS = {"PWR": 90, "DEF": 70, "SPD": 85, "SPC": 95}
     SHEET_PATH = "imageFolder/kai_sheet.png"
@@ -588,8 +612,8 @@ class Kai(Fighter):
         self._kinetic_bank = 0.0
 
 
-class Nyx(Fighter):
-    NAME = "NYX"
+class Art(Fighter):
+    NAME = "T. Art"
     TITLE = "SHADOW SHINOBI"
     BASE_STATS = {"PWR": 75, "DEF": 60, "SPD": 98, "SPC": 90}
     SHEET_PATH = "imageFolder/nyx_sheet.png"

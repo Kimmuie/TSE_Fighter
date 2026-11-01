@@ -14,7 +14,7 @@ import settings as S
 from character import ROSTER, CharacterData
 from combat import BattleWorld
 from component import make_player_one_controller, make_player_two_controller
-from entities import FloatingText, Fighter, Kai, Nyx
+from entities import FloatingText, Fighter
 from events import EventDispatcher
 from stage import Stage
 from ui import ComboBanner, FighterCard, HUD, RosterGrid, draw_text, load_image
@@ -89,16 +89,31 @@ class SelectScene(Scene):
             FighterCard(pygame.Rect(880, 90, 380, 560), S.P2_COLOR, "2", True),
         )
 
+
     def _preview(self, player: int) -> Optional[Fighter]:
         entry = ROSTER[self._cursor[player]]
+
         if not entry.playable:
             return None
+
         key = (player, entry.name)
+
         if key not in self._previews:
             color = S.P1_COLOR if player == 0 else S.P2_COLOR
-            cls = Kai if entry.name == "KAI" else Nyx
-            self._previews[key] = cls(color, self.game.controllers[player], EventDispatcher(), tag=f"{player + 1}P")
+            cls = entry.fighter_class
+
+            if cls is None:
+                return None
+
+            self._previews[key] = cls(
+                color,
+                self.game.controllers[player],
+                EventDispatcher(),
+                tag=f"{player + 1}P"
+            )
+
         return self._previews[key]
+
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type != pygame.KEYDOWN:
@@ -125,10 +140,11 @@ class SelectScene(Scene):
             self._countdown -= dt
             if self._countdown <= 0:
                 e1, e2 = ROSTER[self._cursor[0]], ROSTER[self._cursor[1]]
-                c1 = Kai if e1.name == "KAI" else Nyx
-                c2 = Kai if e2.name == "KAI" else Nyx
-                self.game.change_scene(BattleScene(self.game, c1, c2))  # type: ignore[arg-type]
+                c1 = e1.fighter_class
+                c2 = e2.fighter_class
 
+                if c1 is not None and c2 is not None:
+                    self.game.change_scene(BattleScene(self.game, c1, c2))
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(S.BG)
         draw_text(surface, "SELECT YOUR FIGHTER", 36, S.WHITE, (640, 12), "midtop", display=True)

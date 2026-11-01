@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 import settings as S
+from entities import Jack, Art
 
 
 class CharacterData:
@@ -17,6 +18,7 @@ class CharacterData:
         portrait_path: str,
         sheet_path: str,
         base_stats: dict[str, int],
+        fighter_class=None,
         playable: bool = False,
     ) -> None:
         self.name = name
@@ -29,25 +31,28 @@ class CharacterData:
         self.preview_image = portrait_path
         self.character_image = portrait_path
         self.sprite_sheet = sheet_path
+        self.fighter_class = fighter_class
 
 
 CHARACTERS = [
     CharacterData(
         name="T. Jack",
         title="THE URBAN BRAWLER",
-        color=S.P1_COLOR,
+        color=S.GREY,
         portrait_path="imageFolder/kai_portrait.png",
         sheet_path="imageFolder/kai_sheet.png",
         base_stats={"PWR": 90, "DEF": 70, "SPD": 85, "SPC": 95},
+        fighter_class=Jack,
         playable=True,
     ),
     CharacterData(
         name="T. Art",
         title="SHADOW SHINOBI",
-        color=S.P2_COLOR,
+        color=S.GREY,
         portrait_path="imageFolder/nyx_portrait.png",
         sheet_path="imageFolder/nyx_sheet.png",
         base_stats={"PWR": 75, "DEF": 60, "SPD": 98, "SPC": 90},
+        fighter_class=Art,
         playable=True,
     ),
 ]
