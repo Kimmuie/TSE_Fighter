@@ -195,6 +195,7 @@ class HUD:
 
 class ComboBanner:
     def __init__(self) -> None:
+        self._critical = False
         self._hits = 0
         self._dmg = 0.0
         self._ttl = 0.0
@@ -202,27 +203,62 @@ class ComboBanner:
         self._clock = 0.0
         self._clash = False
 
-    def on_hit(self, attacker: "Fighter", target: "Fighter", damage: float, **_: object) -> None:
+    def on_hit(self, attacker: "Fighter", target: "Fighter",
+            damage: float, **kwargs: object) -> None:
+
         if self._ttl <= 0:
-            self._hits, self._dmg = 0, 0.0
+            self._hits = 0
+            self._dmg = 0.0
+            self._critical = False
+
         self._hits += 1
         self._dmg += damage
+
         self._last[attacker.tag] = self._clock
-        others = [t for tag, t in self._last.items() if tag != attacker.tag]
-        self._clash = any(self._clock - t < 0.5 for t in others)
+
+        others = [
+            t for tag, t in self._last.items()
+            if tag != attacker.tag
+        ]
+
+        self._clash = any(
+            self._clock - t < 0.5 for t in others
+        )
+
+        # Read critical status directly from HitInfo
+        hit = kwargs.get("hit")
+
+        self._critical = (
+            hit is not None and "critical" in hit.tags
+        )
+
         self._ttl = 1.4
 
     def update(self, dt: float) -> None:
         self._clock += dt
         self._ttl = max(0.0, self._ttl - dt)
 
+        if self._ttl <= 0:
+            self._critical = False
+
     def draw(self, surface: pygame.Surface) -> None:
         if self._ttl <= 0:
             return
         cx, y = S.ARENA.centerx, S.GROUND_Y - 78
-        big = get_font(20, bold=False, display=False).render("CLASH!" if self._clash else "COMBO!", True, S.DARK)
+        title = (
+            "CRITICAL HIT!" if self._critical
+            else "CLASH!" if self._clash
+            else "COMBO!"
+        )
+
+        big = get_font(20, bold=False, display=False).render(
+            title, True, S.DARK
+        )
         r = big.get_rect(center=(cx, y)).inflate(20, 8)
-        pygame.draw.rect(surface, S.WHITE, r)
+        if self._critical:
+            pygame.draw.rect(surface, S.RED, r)
+        else:
+            pygame.draw.rect(surface, S.WHITE, r)
         surface.blit(big, big.get_rect(center=r.center))
         sub = get_font(10).render(f"{self._hits} HITS • {int(self._dmg * 10):,} DMG", True, S.DARK)
         sr = sub.get_rect(center=(cx, r.bottom + 10)).inflate(14, 5)

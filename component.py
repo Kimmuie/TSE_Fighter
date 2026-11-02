@@ -114,14 +114,28 @@ class Hitbox:
     def build_hit(self, owner: "Fighter") -> HitInfo:
         assert self._p is not None
         p = self._p
+
+        # Critical hit when attacking in midair
+        critical = not owner.on_ground
+
+        damage = p["damage"] * owner.outgoing_damage_multiplier()
+
+        if critical:
+            damage *= 1.5
+
+        tags = set(p["tags"])
+
+        if critical:
+            tags.add("critical")
+
         return HitInfo(
             attacker=owner,
-            damage=p["damage"] * owner.outgoing_damage_multiplier(),
+            damage=damage,
             knockback=pygame.Vector2(p["knockback"]),
             direction=owner.facing,
             unblockable=p["unblockable"],
             stun=p["stun"],
-            tags=p["tags"],
+            tags=frozenset(tags),
         )
 
 

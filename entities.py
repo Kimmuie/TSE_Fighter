@@ -221,31 +221,38 @@ class Fighter(GameObject, BaseFighter):
         self._frames = self._slice_sheet()
 
 
-    def _slice_sheet(self) -> dict[str, list[pygame.Surface]]:
-        """Sprite sheet rows: 0=idle, 1=walk, 2=attack, 3=ko"""
-        frames = {
-            "idle": [],
-            "walk": [],
-            "attack": [],
-            "ko": []
-        }
 
-        fw, fh = 80, 180
-        poses = ["idle", "walk", "attack", "ko"]
+    def _slice_sheet(self) -> dict[str, list[pygame.Surface]]:
+        poses = [
+            "idle",
+            "walk",
+            "attack",
+            "jumpattack",
+            "guard",
+            "jump",
+            "hit",
+            "ko"
+        ]
+
+        frames = {}
+
+        fw = self._sheet.get_width() // 4
+        fh = self._sheet.get_height() // len(poses)
 
         for row, pose in enumerate(poses):
-            for col in range(4):
-                rect = pygame.Rect(col * fw, row * fh, fw, fh)
+            frames[pose] = []
 
-                if (self._sheet.get_width() >= rect.right
-                        and self._sheet.get_height() >= rect.bottom):
-                    frames[pose].append(
-                        self._sheet.subsurface(rect).copy()
-                    )
-                else:
-                    frames[pose].append(
-                        pygame.Surface((fw, fh), pygame.SRCALPHA)
-                    )
+            for col in range(4):
+                rect = pygame.Rect(
+                    col * fw,
+                    row * fh,
+                    fw,
+                    fh
+                )
+
+                frames[pose].append(
+                    self._sheet.subsurface(rect).copy()
+                )
 
         return frames
 
@@ -425,9 +432,14 @@ class Fighter(GameObject, BaseFighter):
         self.state_machine.update(dt)
         self._pose_time += dt
         self._frame_timer += dt
-        if self._frame_timer > 0.12:
-            self._frame_timer = 0.0
-            self._frame = (self._frame + 1) % 4
+
+        while self._frame_timer >= 0.12:
+            self._frame_timer -= 0.12
+
+            if self.is_ko:
+                self._frame = min(self._frame + 1, 3)
+            else:
+                self._frame = (self._frame + 1) % 4
         if self._pose_time > self._pose_len:
             self._pose = "idle"
         for name in list(self._status):
@@ -535,12 +547,32 @@ class Fighter(GameObject, BaseFighter):
         shadow.center = (self.rect.centerx, S.GROUND_Y + 2)
         pygame.draw.ellipse(surface, (150, 100, 0), shadow)
 
+        
         if self.is_ko:
             pose_key = "ko"
-        elif self._pose in ("punch", "uppercut", "rush", "throw", "cast", "attack"):
+
+        elif not self.on_ground and self._pose in (
+            "punch", "uppercut", "rush", "throw", "cast", "attack"
+        ):
+            pose_key = "jumpattack"
+
+        elif self._pose in (
+            "punch", "uppercut", "rush", "throw", "cast", "attack"
+        ):
             pose_key = "attack"
+
+        elif self._pose == "hit":
+            pose_key = "hit"
+
+        elif self._blocking:
+            pose_key = "guard"
+
+        elif not self.on_ground:
+            pose_key = "jump"
+
         elif self.state_machine.state == State.WALK:
             pose_key = "walk"
+
         else:
             pose_key = "idle"
 
