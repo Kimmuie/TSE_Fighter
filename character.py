@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 import settings as S
-from entities import Jack, Art, Pao
+from entities import Jack, Art, Pao, Piya
 
 
 class CharacterData:
@@ -65,7 +65,17 @@ CHARACTERS = [
         fighter_class=Pao,
         playable=True,
 
-    )
+    ),
+    CharacterData(
+        name="T. Piya",
+        title="The Missing Teacher",
+        color=S.GREY,
+        portrait_path="imageFolder/kai_portrait.png",
+        sheet_path="imageFolder/kai_sheet.png",
+        base_stats=Piya.BASE_STATS.copy(),
+        fighter_class=Piya,
+        playable=True,
+    ),
 ]
 
 LOCKED = [

@@ -735,3 +735,48 @@ class Pao(Fighter):
 
     def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
         self.energy += 5
+
+
+class Piya(Fighter):
+    NAME = "T. Piya"
+    TITLE = "The Missing Teacher"
+    BASE_STATS = {"PWR": 70, "DEF": 55, "SPD": 100}
+    SHEET_PATH = "imageFolder/kai_sheet.png"
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self._kinetic_bank = 0.0
+
+    def create_skills(self) -> list["BaseSkill"]:
+        from skill import PhantomDash, VanishingCounter, ShadowVeil
+        return [PhantomDash(), VanishingCounter(), ShadowVeil()]
+
+    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+        if blocked and self.has_status("kinetic"):
+            self._kinetic_bank = min(30.0, self._kinetic_bank + damage * 2)
+            self.energy += damage * 2
+            self.burst(6, S.WHITE, 200)
+            return 0.0
+        return damage
+
+    def outgoing_damage_multiplier(self) -> float:
+        return 1.0 + self._kinetic_bank / 40.0
+
+    @property
+    def attack_speed(self) -> float:
+        return 1.5 if self.has_status("kinetic") else 1.0
+
+    @property
+    def move_speed_multiplier(self) -> float:
+        return 1.45 if self.has_status("kinetic") else 1.0
+
+    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
+        self.energy += damage * 0.5
+
+    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
+        self.energy += 6
+        self._kinetic_bank = 0.0
+
+    def reset(self, x: float, facing: int) -> None:
+        super().reset(x, facing)
+        self._kinetic_bank = 0.0

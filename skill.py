@@ -374,3 +374,103 @@ class BlueScreen_Crash(BaseSkill):
                 for i in range(1, 5):
                     w.spawn_particles(caster.pos.x + side * i * 70, S.GROUND_Y,
                                       self.BLUE, 6, 260)
+
+
+# ================================================================== Piya
+class PhantomDash(BaseSkill):
+    NAME = "PHANTOM DASH"
+    DESCRIPTION = "Phases through projectiles with brief invulnerability frames, emerging behind the foe."
+    COOLDOWN = 3.0
+    ENERGY_COST = 15.0
+    ICON = "emptyImage.png"
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        old = caster.rect.center
+        side = 1 if target.pos.x >= caster.pos.x else -1
+        new_x = target.pos.x + side * 95
+        new_x = max(S.ARENA.left + 50, min(S.ARENA.right - 50, new_x))
+        caster.set_x(new_x)
+        caster.facing = -side
+        caster.vel.x = 0
+        caster.add_status("invulnerable", 0.5)
+        caster.state_machine.change(State.CAST, lock=0.15)
+        if caster.world is not None:
+            caster.world.spawn_particles(old[0], old[1], S.P2_COLOR, 18, 300)
+        caster.burst(18, S.P2_COLOR, 300)
+
+class VanishingCounter(BaseSkill):
+    NAME = "Vanishing Counter"
+    DESCRIPTION = "หายตัวหลบแล้วสวนกลับ"
+    COOLDOWN = 8.0
+    ENERGY_COST = 30.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
+    VANISH_TIME = 0.4            # ช่วงหายตัว (อมตะ)
+    COUNTER_BONUS = 1.5          # ตัวคูณดาเมจเมื่อศัตรูกำลังโจมตีตอนโผล่
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._caster: Optional[Fighter] = None
+        self._target: Optional[Fighter] = None
+        self._vanish_left = 0.0
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        # จังหวะ 1: หายตัว (โปร่งใส + อมตะ)
+        self._caster, self._target, self._vanish_left = caster, target, self.VANISH_TIME
+        caster.vel.x = 0
+        caster.add_status("invulnerable", self.VANISH_TIME + 0.1)
+        caster.state_machine.change(State.CAST, lock=self.VANISH_TIME + 0.4)
+        self.play_pose(caster, "cast", self.VANISH_TIME)
+        caster.burst(20, S.P2_COLOR, 300)
+
+    def update(self, dt: float) -> None:
+        super().update(dt)
+        c, t = self._caster, self._target
+        if c is None or t is None or self._vanish_left <= 0:
+            return
+        if c.is_ko or t.is_ko:
+            self._vanish_left = 0.0
+            return
+        self._vanish_left -= dt
+        if self._vanish_left > 0:
+            return
+        # จังหวะ 2: โผล่ด้านหลังศัตรูแล้วสวนกลับ
+        old = c.rect.center
+        side = 1 if t.pos.x >= c.pos.x else -1
+        new_x = t.pos.x + side * 95
+        new_x = max(S.ARENA.left + 50, min(S.ARENA.right - 50, new_x))
+        c.set_x(new_x)
+        c.facing = -side
+        c.vel.x = 0
+        counter = t.state_machine.state in (State.ATTACK, State.CAST)
+        mult = self.COUNTER_BONUS if counter else 1.0
+        c.hitbox.arm(
+            damage=(8 + 8 * c.power) * c.outgoing_damage_multiplier() * mult,
+            width=100, height=120, offset_x=55, offset_y=105,
+            windup=0.05, active=0.15,
+            knockback=(450, -300), stun=0.5,
+            tags={"counter"},
+        )
+        self.play_pose(c, "attack", 0.3)
+        if c.world is not None:
+            c.world.spawn_particles(old[0], old[1], S.P2_COLOR, 18, 300)
+        c.burst(18, S.WHITE if counter else S.P2_COLOR, 320)
+
+    def reset(self) -> None:
+        super().reset()
+        self._vanish_left = 0.0
+
+class ShadowVeil(BaseSkill):
+    NAME = "SHADOW VEIL"
+    DESCRIPTION = "Deploys a smoke screen that conceals hitboxes and guarantees critical counters."
+    COOLDOWN = 12.0
+    ENERGY_COST = 35.0
+    ICON = "emptyImage.png"
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.add_status("veiled", 5.0)
+        caster.state_machine.change(State.CAST, lock=0.3)
+        caster.play_pose("cast", 0.3)
+        caster.burst(24, (90, 90, 100), 200)
+        if caster.world is not None:
+            caster.world.spawn_effect(SmokeScreen(caster))
