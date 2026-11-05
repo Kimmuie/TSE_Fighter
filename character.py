@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 import settings as S
-from entities import Jack, Art
+from entities import Jack, Art, Pao
 
 
 class CharacterData:
@@ -40,7 +40,7 @@ CHARACTERS = [
         title="God of Python",
         color=S.GREY,
         portrait_path="imageFolder/kai_portrait.png",
-        sheet_path="imageFolder/kai_sheet.png",
+        sheet_path="imageFolder/jack_sheet.png",
         base_stats=Jack.BASE_STATS.copy(),
         fighter_class=Jack,
         playable=True,
@@ -50,11 +50,22 @@ CHARACTERS = [
         title="The Toxic Speaker",
         color=S.GREY,
         portrait_path="imageFolder/nyx_portrait.png",
-        sheet_path="imageFolder/nyx_sheet.png",
+        sheet_path="imageFolder/art_sheet.png",
         base_stats=Art.BASE_STATS.copy(),
         fighter_class=Art,
         playable=True,
     ),
+    CharacterData(
+        name="T. Pao",
+        title="The CPU Destroyer",
+        color=S.GREY,
+        portrait_path="imageFolder/kai_portrait.png",
+        sheet_path="imageFolder/kai_sheet.png",
+        base_stats=Pao.BASE_STATS.copy(),
+        fighter_class=Pao,
+        playable=True,
+
+    )
 ]
 
 LOCKED = [
