@@ -99,17 +99,9 @@ CHARACTERS = [
 ]
 
 LOCKED = [
-    CharacterData("T. Piya", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50}),
-    CharacterData("T. Pao", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50}),
-    CharacterData("T. Wachira", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50}),
-    CharacterData("T. May", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50}),
-    CharacterData("Oat", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("Night", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
+    CharacterData("Poom", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
                   {"PWR": 50, "DEF": 50, "SPD": 50}),
 ]
 

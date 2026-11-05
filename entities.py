@@ -118,10 +118,10 @@ class SmokeScreen(GameObject):
             pygame.draw.circle(layer, (60, 55, 75, 105), (int(cx), int(cy)), int(r * size))
         surface.blit(layer, (self.rect.centerx - r, S.GROUND_Y - r * 2))
 
-
+# Projectile========================================================================================
 class Projectile(GameObject):
     def __init__(self, owner: "Fighter", x: float, y: float, vx: float, vy: float,
-                 damage: float, lifespan: float = 1.6, size: tuple[int, int] = (30, 8)) -> None:
+                 damage: float, lifespan: float = 1.6, size: tuple[int, int] = (30, 8),) -> None:
         super().__init__(x, y, size[0], size[1], gravity=0.0)
         self.owner = owner
         self.vel.update(vx, vy)
@@ -145,6 +145,33 @@ class Projectile(GameObject):
     def draw(self, surface: pygame.Surface) -> None:
         pygame.draw.rect(surface, self.owner.color, self.rect)
 
+class SoundwaveProjectile(Projectile):
+    def __init__(self, owner: "Fighter", x: float, y: float,
+                 vx: float, vy: float, damage: float,
+                 sprite: str,
+                 lifespan: float = 1.2,
+                 size: tuple[int, int] = (120, 70)) -> None:
+
+        super().__init__(owner, x, y, vx, vy, damage, lifespan, size)
+
+        self._img = load_image(os.path.join(S.IMAGE_DIR, sprite), size)
+
+    def build_hit(self) -> HitInfo:
+        return HitInfo(
+            attacker=self.owner,
+            damage=self.damage,
+            knockback=pygame.Vector2(260, -50),
+            direction=1 if self.vel.x >= 0 else -1,
+            stun=0.3
+        )
+    def on_hit(self, target: "Fighter") -> None:
+        pass
+
+    def draw(self, surface: pygame.Surface) -> None:
+        img = self._img
+        if self.vel.x < 0:
+            img = pygame.transform.flip(img, True, False)
+        surface.blit(img, img.get_rect(center=self.rect.center))
 
 class KunaiProjectile(Projectile):
     def __init__(self, *args: object, bleed_dps: float = 0.7, bleed_time: float = 4.0, **kw: object) -> None:
@@ -163,7 +190,7 @@ class KunaiProjectile(Projectile):
             img = pygame.transform.flip(img, True, False)
         surface.blit(img, img.get_rect(center=self.rect.center))
 
-
+# Fighter================================================================================================
 class BaseFighter(ABC):
     @abstractmethod
     def create_skills(self) -> list["BaseSkill"]:

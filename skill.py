@@ -8,7 +8,7 @@ import pygame
 
 import settings as S
 from component import State
-from entities import Fighter, FloatingText, KunaiProjectile, SmokeScreen, Projectile
+from entities import Fighter, FloatingText, KunaiProjectile, SmokeScreen, SoundwaveProjectile
 from ui import load_image
 
 
@@ -91,6 +91,7 @@ class PacMan_Chomp(BaseSkill):
     DASH_SPEED = 1100.0
     DASH_TIME = 0.30
     SHEET_PATH = "imageFolder/jack_skill1.png"
+    SHEET_TIME = 0.4
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.DASH_TIME + 0.15)
@@ -110,13 +111,13 @@ class PacMan_Chomp(BaseSkill):
 class Power_Pellet(BaseSkill):
     NAME = "Power Pellet"
     DESCRIPTION = "กินเม็ดพลังเพื่อเพิ่มความเร็ว"
-    COOLDOWN = 6.0
+    COOLDOWN = 12.0
     ENERGY_COST = 20.0
     ICON = "emptyImage.png"
     BUFF_TIME = 5.0
     HEAL = 8.0
     SHEET_PATH = "imageFolder/jack_skill2.png"
-    SHEET_TIME = 0.8
+    SHEET_TIME = 1.2
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         # ใช้ status "kinetic" เดิม เพื่อให้โบนัสของ Jack (attack_speed,
@@ -124,8 +125,8 @@ class Power_Pellet(BaseSkill):
         caster.add_status("kinetic", self.BUFF_TIME)
         caster.hp += self.HEAL
         caster.stamina += self.ENERGY_COST
-        caster.state_machine.change(State.CAST, lock=0.25)
-        self.play_pose(caster, "cast", 0.8)
+        caster.state_machine.change(State.CAST, lock=1.2)
+        self.play_pose(caster, "cast", 1.2)
         caster.burst(20, S.WHITE, 240)
 
 
@@ -179,16 +180,51 @@ class GhostFrenzy(BaseSkill):
 
 
 # ================================================================== Art
+
+class CriticalRoast(BaseSkill):
+    NAME = "CRITICAL ROAST"
+    DESCRIPTION = "ยิงคลื่นเสียงจากคำพูดโจมตีศัตรู"
+    COOLDOWN = 5.0
+    ENERGY_COST = 25.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = "imageFolder/art_skill1.png"
+    SHEET_TIME = 0.3
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.state_machine.change(State.CAST, lock=0.3)
+        self.play_pose(caster, "throw", 0.3)
+
+        mult = caster.outgoing_damage_multiplier()
+
+        # Fire 3 soundwaves at different angles
+        for vy in (-200.0, 0.0, 200.0):
+            soundwave = SoundwaveProjectile(
+                caster,
+                caster.rect.centerx,
+                caster.rect.centery,
+                vx=500 * caster.facing,
+                vy=vy,
+                damage=4 * mult,
+                sprite="sound1_projectile.png",
+                lifespan=0.5,
+                size=(120, 70)
+            )
+
+            if caster.world is not None:
+                caster.world.spawn_projectile(soundwave)
+
 class ShutUp(BaseSkill):
     NAME = "Shut Up!"
     DESCRIPTION = "ตะโกนผลักศัตรูออกไป"
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "emptyImage.png"
+    SHEET_PATH = "imageFolder/art_skill2.png"
+    SHEET_TIME = 0.35
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=0.35)
-        caster.vel.x = 0
+        caster.vel.x = -850 * caster.facing
         # คลื่นเสียง: hitbox กว้างด้านหน้า ดาเมจต่ำแต่ผลักแรง ป้องกันไม่ได้
         caster.hitbox.arm(
             damage=(3 + 3 * caster.power) * caster.outgoing_damage_multiplier(),
@@ -201,36 +237,15 @@ class ShutUp(BaseSkill):
         caster.burst(22, S.WHITE, 340)
 
 
-class CriticalRoast(BaseSkill):
-    NAME = "CRITICAL ROAST"
-    DESCRIPTION = "ยิงคลื่นเสียงจากคำพูดโจทตีศัตรู"
-    COOLDOWN = 5.0
-    ENERGY_COST = 25.0
-    ICON = "emptyImage.png"
-
-    def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.3)
-        self.play_pose(caster, "throw", 0.3)
-        mult = caster.outgoing_damage_multiplier()
-        for i, vy in enumerate((-60.0, 0.0, 60.0)):
-            kunai = KunaiProjectile(
-                caster,
-                caster.rect.centerx + caster.facing * 45,
-                caster.rect.bottom - 125 + i * 18,
-                caster.facing * 820.0, vy, 2.5 * mult,
-                bleed_dps=0.7, bleed_time=4.0,
-            )
-            if caster.world is not None:
-                caster.world.spawn_projectile(kunai)
-
-
 class EmotionalDamage(BaseSkill):
     NAME = "EMOTIONAL DAMAGE"
     DESCRIPTION = "ปล่อยคำพูดทำลายจิตใจพร้อมคลื่นเสียงรุนแรง"
-    COOLDOWN = 12.0
+    COOLDOWN = 9.0
     ENERGY_COST = 35.0
     ICON = "emptyImage.png"
     WAVE_SPEED = 700
+    SHEET_PATH = "imageFolder/art_skill3.png"
+    SHEET_TIME = 0.45
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         mult = caster.outgoing_damage_multiplier()
@@ -248,23 +263,27 @@ class EmotionalDamage(BaseSkill):
         )
 
         # 2 คลื่นเสียงลูกใหญ่พุ่งออกไปไกล
-        for i, vy in enumerate((-60.0, 0.0, 60.0)):
-            kunai = KunaiProjectile(
+        soundwave = SoundwaveProjectile(
             caster,
-                caster.rect.centerx + caster.facing * 45,
-                caster.rect.bottom - 125 + i * 18,
-                caster.facing * 820.0, vy, 2.5 * mult,
-                bleed_dps=0.7, bleed_time=4.0,
-            )
-            if caster.world is not None:
-                caster.world.spawn_projectile(kunai)
-            
-            #caster.world.spawn_projectile(wave)
-            # ข้อความคำพูดลอยขึ้นเหนือหัว
-            caster.world.spawn_effect(
-                FloatingText("EMOTIONAL DAMAGE!", caster.rect.centerx,
-                             caster.rect.top - 20, S.WHITE, 1.2)
-            )
+            caster.rect.centerx,
+            caster.rect.centery,
+            vx=450 * caster.facing,
+            vy=0,
+            damage=20 * mult,
+            sprite="sound2_projectile.png",
+            lifespan=1.5,
+            size=(120, 70)
+        )
+
+        if caster.world is not None:
+            caster.world.spawn_projectile(soundwave)
+        
+        #caster.world.spawn_projectile(wave)
+        # ข้อความคำพูดลอยขึ้นเหนือหัว
+        caster.world.spawn_effect(
+            FloatingText("EMOTIONAL DAMAGE!", caster.rect.centerx,
+                            caster.rect.top - 20, S.WHITE, 1.2)
+        )
 
         caster.burst(30, S.WHITE, 380)
 
