@@ -18,7 +18,8 @@ class BaseSkill(ABC):
     COOLDOWN = 3.0
     ENERGY_COST = 10.0
     ICON = "emptyImage.png"
-    SHEET_PATH: Optional[str] = None   # None = ใช้ท่าต่อยของตัวละคร
+    SHEET_PATH: Optional[str] = None 
+    SHEET_TIME: Optional[float] = None
     SHEET_COLUMNS = 4
 
     def __init__(self) -> None:
@@ -44,7 +45,8 @@ class BaseSkill(ABC):
         ]
     
     def play_pose(self, caster: Fighter, pose: str, length: float) -> None:
-        # ถ้าสกิลมี sheet ของตัวเองจะใช้ sheet นั้น ไม่เช่นนั้นใช้ท่าของตัวละคร
+        if self._frames and self.SHEET_TIME:
+            length = self.SHEET_TIME
         caster.play_pose(pose, length, frames=self._frames)
 
     
@@ -88,7 +90,7 @@ class PacMan_Chomp(BaseSkill):
     ICON = "emptyImage.png"
     DASH_SPEED = 1100.0
     DASH_TIME = 0.30
-    SHEET_PATH = "imageFolder/pacman_chomp_sheet.png"
+    SHEET_PATH = "imageFolder/jack_skill1.png"
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.DASH_TIME + 0.15)
@@ -113,6 +115,8 @@ class Power_Pellet(BaseSkill):
     ICON = "emptyImage.png"
     BUFF_TIME = 5.0
     HEAL = 8.0
+    SHEET_PATH = "imageFolder/jack_skill2.png"
+    SHEET_TIME = 0.8
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         # ใช้ status "kinetic" เดิม เพื่อให้โบนัสของ Jack (attack_speed,
@@ -121,7 +125,7 @@ class Power_Pellet(BaseSkill):
         caster.hp += self.HEAL
         caster.stamina += self.ENERGY_COST
         caster.state_machine.change(State.CAST, lock=0.25)
-        self.play_pose(caster, "cast", 0.25)
+        self.play_pose(caster, "cast", 0.8)
         caster.burst(20, S.WHITE, 240)
 
 

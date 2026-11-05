@@ -109,7 +109,7 @@ class SmokeScreen(GameObject):
         if not self._owner.has_status("veiled"):
             self.kill()
 
-    def draw(self, surface: pygame.Surface) -> None:
+    def draw(self, surface: Surface) -> None:
         r = self._radius
         layer = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
         for ox, oy, size, speed, phase in self._puffs:
@@ -443,6 +443,7 @@ class Fighter(GameObject, BaseFighter):
                 self._frame = (self._frame + 1) % 4
         if self._pose_time > self._pose_len:
             self._pose = "idle"
+            self._pose_frames = None
         for name in list(self._status):
             self._status[name] -= dt
             if self._status[name] <= 0:
@@ -577,10 +578,17 @@ class Fighter(GameObject, BaseFighter):
         else:
             pose_key = "idle"
 
-        frames = self._frames.get(pose_key, self._frames["idle"])
+        if self._pose_frames and self._pose != "idle" and not self.is_ko:
+            frames = self._pose_frames
+        else:
+            frames = self._frames.get(pose_key, self._frames["idle"])
         if not frames:
             return
-        frame = frames[self._frame % len(frames)]
+        if frames is self._pose_frames and self._pose_len > 0:
+            idx = min(int(self._pose_time / self._pose_len * len(frames)), len(frames) - 1)
+        else:
+            idx = self._frame % len(frames)
+        frame = frames[idx]
         if self.facing < 0:
             frame = pygame.transform.flip(frame, True, False)
         alpha = 255
