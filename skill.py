@@ -577,3 +577,81 @@ class BeastMode(BaseSkill):
     def reset(self) -> None:
         super().reset()
         self._remaining = 0
+
+
+# ================================================================== Jin
+class BottleBomb(BaseSkill):
+    NAME = "Bottle Bomb"
+    DESCRIPTION = "ปาขวดใส่ศัตรูจากระยะไกล สร้างความเสียหายและทำให้ชะงัก"
+    COOLDOWN = 9.0
+    ENERGY_COST = 30.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = "imageFolder/bottle_bomb_sheet.png"   # sprite sheet 1 แถว 4 เฟรม
+    FREEZE_TIME = 3.0
+    MIN_RANGE = 150.0      # ระยะใกล้สุดที่ขวดตก
+    MAX_RANGE = 650.0      # ระยะไกลสุดที่ปาถึง
+    FLIGHT_BASE = 0.2      # เวลาลอยพื้นฐาน
+    FLIGHT_SPEED = 1500.0  # ยิ่งไกล ยิ่งลอยนานขึ้น
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        # วัดระยะถึงศัตรู ณ ตอนปา แล้วให้ขวดตกตรงนั้น
+        dist = abs(target.pos.x - caster.pos.x)
+        dist = max(self.MIN_RANGE, min(self.MAX_RANGE, dist))
+        flight = self.FLIGHT_BASE + dist / self.FLIGHT_SPEED
+
+        caster.state_machine.change(State.CAST, lock=flight + 0.25)
+        caster.vel.x = 0
+        caster.hitbox.arm(
+            damage=(4 + 4 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=160, height=120, offset_x=dist, offset_y=110,
+            windup=flight, active=0.12,
+            knockback=(0, 0), unblockable=True,
+            stun=self.FREEZE_TIME, tags={"bottle"},
+        )
+        self.play_pose(caster, "throw", flight)
+        caster.burst(10, S.WHITE, 220)
+
+class MotorcycleRush(BaseSkill):
+    NAME = "Motorcycle Rush"
+    DESCRIPTION = "ขี่มอเตอร์ไซค์พุ่งชนศัตรูอย่างรวดเร็ว"
+    COOLDOWN = 3.0
+    ENERGY_COST = 15.0
+    ICON = "emptyImage.png"
+    DASH_SPEED = 1100.0
+    DASH_TIME = 0.30
+    SHEET_PATH = "imageFolder/jack_skill1.png"
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.state_machine.change(State.CAST, lock=self.DASH_TIME + 0.15)
+        caster.vel.x = caster.facing * self.DASH_SPEED
+        caster.hitbox.arm(
+            damage=(8 + 8 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=110, height=100, offset_x=60, offset_y=105,
+            windup=0.05, active=self.DASH_TIME,
+            knockback=(380, -260), stun=0.5,
+            tags={"chomp"},
+        )
+        self.play_pose(caster, "rush", self.DASH_TIME + 0.1)
+        caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
+
+class GansterDrift(BaseSkill):
+    NAME = "Ganster Drift"
+    DESCRIPTION = "ดริฟต์มอเตอร์ไซค์เป็นวงกว้าง สร้างความเสียหายรอบตัวและกระแทกศัตรูกระเด็น"
+    COOLDOWN = 8.0
+    ENERGY_COST = 35.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = "imageFolder/gangster_drift_sheet.png"   # sprite sheet 1 แถว 4 เฟรม (ไม่ใส่ = ใช้ท่าต่อย)
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.state_machine.change(State.CAST, lock=0.6)
+        caster.vel.x = caster.facing * 220.0      # ไถลไปข้างหน้าเล็กน้อยตอนดริฟต์
+        # วงกว้างรอบตัว: ศูนย์กลางอยู่ที่ตัวละคร (offset_x=0)
+        caster.hitbox.arm(
+            damage=(9 + 9 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=420, height=150, offset_x=0, offset_y=110,
+            windup=0.15, active=0.25,
+            knockback=(800, -380), unblockable=True,
+            stun=0.6, tags={"wall_bounce"},
+        )
+        self.play_pose(caster, "rush", 0.6)
+        caster.burst(26, S.WHITE, 340)

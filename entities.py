@@ -822,3 +822,45 @@ class Oat(Fighter):
 
     def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
         self.energy += 5
+
+
+class Jin(Fighter):
+    NAME = "Jin"
+    TITLE = "Hole Destroyer"
+    BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
+    SHEET_PATH = "imageFolder/nyx_sheet.png"
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
+        self._counter_cd = 0.0
+
+    def create_skills(self) -> list["BaseSkill"]:
+        from skill import BottleBomb, MotorcycleRush, GansterDrift
+        return [BottleBomb(), MotorcycleRush(), GansterDrift()]
+
+    def update(self, dt: float, *args: object) -> None:
+        self._counter_cd = max(0.0, self._counter_cd - dt)
+        super().update(dt)
+
+    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+        return damage * 0.5 if self.has_status("veiled") else damage
+
+    def outgoing_damage_multiplier(self) -> float:
+        return 1.5 if self.has_status("veiled") else 1.0
+
+    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
+        if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
+            return
+        self._counter_cd = 0.6
+        crit = (6 + 8 * self.power) * 2.0
+        counter = HitInfo(
+            attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
+            direction=1 if hit.attacker.pos.x >= self.pos.x else -1,
+            unblockable=True, stun=0.45, tags=frozenset({"counter", "crit"}),
+        )
+        if self.world is not None:
+            self.world.spawn_effect(FloatingText("CRITICAL COUNTER!", self.pos.x, self.pos.y - 190, S.WHITE))
+        hit.attacker.take_hit(counter)
+
+    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
+        self.energy += 5

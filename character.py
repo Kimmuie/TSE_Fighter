@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 import settings as S
-from entities import Jack, Art, Pao, Piya, Oat
+from entities import Jack, Art, Pao, Piya, Oat, Jin
 
 
 class CharacterData:
@@ -85,6 +85,16 @@ CHARACTERS = [
         base_stats=Oat.BASE_STATS.copy(),
         fighter_class=Oat,
         playable=True,
+    ),
+    CharacterData(
+        name="Jin",
+        title="Hole Destroyer",
+        color=S.GREY,
+        portrait_path="imageFolder/nyx_portrait.png",
+        sheet_path="imageFolder/nyx_sheet.png",
+        base_stats=Jin.BASE_STATS.copy(),
+        fighter_class=Jin,
+        playable=True,     
     ),
 ]
 
