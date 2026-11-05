@@ -647,8 +647,8 @@ class Jack(Fighter):
 
 class Art(Fighter):
     NAME = "T. Art"
-    TITLE = "SHADOW SHINOBI"
-    BASE_STATS = {"PWR": 75, "DEF": 60, "SPD": 98}
+    TITLE = "The Toxic Speaker"
+    BASE_STATS = {"PWR": 90, "DEF": 60, "SPD": 75}
     SHEET_PATH = "imageFolder/nyx_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -656,8 +656,8 @@ class Art(Fighter):
         self._counter_cd = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import NaniteKunai, PhantomDash, ShadowVeil
-        return [PhantomDash(), NaniteKunai(), ShadowVeil()]
+        from skill import CriticalRoast, ShutUp, EmotionalDamage
+        return [CriticalRoast(), ShutUp(), EmotionalDamage()]
 
     def update(self, dt: float, *args: object) -> None:
         self._counter_cd = max(0.0, self._counter_cd - dt)

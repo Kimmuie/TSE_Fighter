@@ -37,7 +37,7 @@ class CharacterData:
 CHARACTERS = [
     CharacterData(
         name="T. Jack",
-        title="THE URBAN BRAWLER",
+        title="God of Python",
         color=S.GREY,
         portrait_path="imageFolder/kai_portrait.png",
         sheet_path="imageFolder/kai_sheet.png",
@@ -47,7 +47,7 @@ CHARACTERS = [
     ),
     CharacterData(
         name="T. Art",
-        title="SHADOW SHINOBI",
+        title="The Toxic Speaker",
         color=S.GREY,
         portrait_path="imageFolder/nyx_portrait.png",
         sheet_path="imageFolder/nyx_sheet.png",

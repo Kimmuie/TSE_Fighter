@@ -8,7 +8,7 @@ import pygame
 
 import settings as S
 from component import State
-from entities import Fighter, FloatingText, KunaiProjectile, SmokeScreen
+from entities import Fighter, FloatingText, KunaiProjectile, SmokeScreen, Projectile
 from ui import load_image
 
 
@@ -79,7 +79,7 @@ class BaseSkill(ABC):
         pass
 
 
-# ================================================================== KAI
+# ================================================================== Jack
 class PacMan_Chomp(BaseSkill):
     NAME = "Pac-Man Chomp"
     DESCRIPTION = "พุ่งกัดศัตรูอย่างรวดเร็ว"
@@ -174,32 +174,32 @@ class GhostFrenzy(BaseSkill):
         self._remaining = 0
 
 
-# ================================================================== NYX
-class PhantomDash(BaseSkill):
-    NAME = "PHANTOM DASH"
-    DESCRIPTION = "Phases through projectiles with brief invulnerability frames, emerging behind the foe."
+# ================================================================== Art
+class ShutUp(BaseSkill):
+    NAME = "Shut Up!"
+    DESCRIPTION = "ตะโกนผลักศัตรูออกไป"
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "emptyImage.png"
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        old = caster.rect.center
-        side = 1 if target.pos.x >= caster.pos.x else -1
-        new_x = target.pos.x + side * 95
-        new_x = max(S.ARENA.left + 50, min(S.ARENA.right - 50, new_x))
-        caster.set_x(new_x)
-        caster.facing = -side
+        caster.state_machine.change(State.CAST, lock=0.35)
         caster.vel.x = 0
-        caster.add_status("invulnerable", 0.5)
-        caster.state_machine.change(State.CAST, lock=0.15)
-        if caster.world is not None:
-            caster.world.spawn_particles(old[0], old[1], S.P2_COLOR, 18, 300)
-        caster.burst(18, S.P2_COLOR, 300)
+        # คลื่นเสียง: hitbox กว้างด้านหน้า ดาเมจต่ำแต่ผลักแรง ป้องกันไม่ได้
+        caster.hitbox.arm(
+            damage=(3 + 3 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=160, height=140, offset_x=90, offset_y=100,
+            windup=0.08, active=0.15,
+            knockback=(900, -120), unblockable=True,
+            stun=0.4, tags={"shout"},
+        )
+        self.play_pose(caster, "cast", 0.35)
+        caster.burst(22, S.WHITE, 340)
 
 
-class NaniteKunai(BaseSkill):
-    NAME = "NANITE KUNAI"
-    DESCRIPTION = "Throws three energy daggers inflicting bleeding chip damage over 4 seconds."
+class CriticalRoast(BaseSkill):
+    NAME = "CRITICAL ROAST"
+    DESCRIPTION = "ยิงคลื่นเสียงจากคำพูดโจทตีศัตรู"
     COOLDOWN = 5.0
     ENERGY_COST = 25.0
     ICON = "emptyImage.png"
@@ -220,17 +220,47 @@ class NaniteKunai(BaseSkill):
                 caster.world.spawn_projectile(kunai)
 
 
-class ShadowVeil(BaseSkill):
-    NAME = "SHADOW VEIL"
-    DESCRIPTION = "Deploys a smoke screen that conceals hitboxes and guarantees critical counters."
+class EmotionalDamage(BaseSkill):
+    NAME = "EMOTIONAL DAMAGE"
+    DESCRIPTION = "ปล่อยคำพูดทำลายจิตใจพร้อมคลื่นเสียงรุนแรง"
     COOLDOWN = 12.0
     ENERGY_COST = 35.0
     ICON = "emptyImage.png"
+    WAVE_SPEED = 700
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.add_status("veiled", 5.0)
-        caster.state_machine.change(State.CAST, lock=0.3)
-        self.play_pose(caster, "cast", 0.3)
-        caster.burst(24, (90, 90, 100), 200)
-        if caster.world is not None:
-            caster.world.spawn_effect(SmokeScreen(caster))
+        mult = caster.outgoing_damage_multiplier()
+        caster.state_machine.change(State.CAST, lock=0.45)
+        caster.vel.x = 0
+        self.play_pose(caster, "cast", 0.45)
+
+        # 1 คลื่นเสียงระยะประชิดหน้าตัวละคร
+        caster.hitbox.arm(
+            damage=(5 + 5 * caster.power) * mult,
+            width=120, height=140, offset_x=70, offset_y=100,
+            windup=0.1, active=0.15,
+            knockback=(700, -200), unblockable=True,
+            stun=0.5, tags={"shout"},
+        )
+
+        # 2 คลื่นเสียงลูกใหญ่พุ่งออกไปไกล
+        for i, vy in enumerate((-60.0, 0.0, 60.0)):
+            kunai = KunaiProjectile(
+            caster,
+                caster.rect.centerx + caster.facing * 45,
+                caster.rect.bottom - 125 + i * 18,
+                caster.facing * 820.0, vy, 2.5 * mult,
+                bleed_dps=0.7, bleed_time=4.0,
+            )
+            if caster.world is not None:
+                caster.world.spawn_projectile(kunai)
+            
+            #caster.world.spawn_projectile(wave)
+            # ข้อความคำพูดลอยขึ้นเหนือหัว
+            caster.world.spawn_effect(
+                FloatingText("EMOTIONAL DAMAGE!", caster.rect.centerx,
+                             caster.rect.top - 20, S.WHITE, 1.2)
+            )
+
+        caster.burst(30, S.WHITE, 380)
+
