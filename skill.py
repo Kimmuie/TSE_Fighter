@@ -9,6 +9,7 @@ import pygame
 import settings as S
 from component import State
 from entities import Fighter, FloatingText, KunaiProjectile, SmokeScreen
+from ui import load_image
 
 
 class BaseSkill(ABC):
@@ -17,15 +18,36 @@ class BaseSkill(ABC):
     COOLDOWN = 3.0
     ENERGY_COST = 10.0
     ICON = "emptyImage.png"
+    SHEET_PATH: Optional[str] = None   # None = ใช้ท่าต่อยของตัวละคร
+    SHEET_COLUMNS = 4
 
     def __init__(self) -> None:
         self._cooldown_left = 0.0
         self.action = ""
         self.key_label = ""
+        self._frames: Optional[list[pygame.Surface]] = None
 
     def bind(self, action: str, key_label: str) -> None:
         self.action, self.key_label = action, key_label
 
+    def load_sprite(self) -> None:
+        """โหลด sprite sheet ของสกิล (เรียกจาก Fighter หลังสร้างสกิล)"""
+        if not self.SHEET_PATH:
+            self._frames = None
+            return
+        sheet = load_image(self.SHEET_PATH)
+        fw = sheet.get_width() // self.SHEET_COLUMNS
+        fh = sheet.get_height()
+        self._frames = [
+            sheet.subsurface(pygame.Rect(i * fw, 0, fw, fh)).copy()
+            for i in range(self.SHEET_COLUMNS)
+        ]
+    
+    def play_pose(self, caster: Fighter, pose: str, length: float) -> None:
+        # ถ้าสกิลมี sheet ของตัวเองจะใช้ sheet นั้น ไม่เช่นนั้นใช้ท่าของตัวละคร
+        caster.play_pose(pose, length, frames=self._frames)
+
+    
     @property
     def cooldown_left(self) -> float:
         return self._cooldown_left
@@ -58,46 +80,58 @@ class BaseSkill(ABC):
 
 
 # ================================================================== KAI
-class PlasmaHook(BaseSkill):
-    NAME = "PLASMA HOOK"
-    DESCRIPTION = "Launches an electrified high uppercut that wall-bounces opponents on clean hit."
+class PacMan_Chomp(BaseSkill):
+    NAME = "Pac-Man Chomp"
+    DESCRIPTION = "พุ่งกัดศัตรูอย่างรวดเร็ว"
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "emptyImage.png"
+    DASH_SPEED = 1100.0
+    DASH_TIME = 0.30
+    SHEET_PATH = "imageFolder/pacman_chomp_sheet.png"
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.55)
+        caster.state_machine.change(State.CAST, lock=self.DASH_TIME + 0.15)
+        # พุ่งไปทางที่หันหน้า แล้ว hitbox (ปากงับ) จะทำงานระหว่างพุ่ง
+        caster.vel.x = caster.facing * self.DASH_SPEED
         caster.hitbox.arm(
-            damage=10 + 10 * caster.power, width=90, height=130, offset_x=55, offset_y=95,
-            windup=0.12, active=0.18, knockback=(700, -620), stun=0.55,
-            tags={"wall_bounce"},
+            damage=(8 + 8 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=110, height=100, offset_x=60, offset_y=105,
+            windup=0.05, active=self.DASH_TIME,
+            knockback=(380, -260), stun=0.5,
+            tags={"chomp"},
         )
-        caster.play_pose("uppercut", 0.5)
-        caster.burst(10, S.P1_COLOR, 220)
+        self.play_pose(caster, "rush", self.DASH_TIME + 0.1)
+        caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
 
 
-class KineticCharge(BaseSkill):
-    NAME = "KINETIC CHARGE"
-    DESCRIPTION = "Absorbs incoming guard damage to supercharge frame data and forward dash speed."
+class Power_Pellet(BaseSkill):
+    NAME = "Power Pellet"
+    DESCRIPTION = "กินเม็ดพลังเพื่อเพิ่มความเร็ว"
     COOLDOWN = 6.0
     ENERGY_COST = 20.0
     ICON = "emptyImage.png"
+    BUFF_TIME = 5.0
+    HEAL = 8.0
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.add_status("kinetic", 5.0)
+        # ใช้ status "kinetic" เดิม เพื่อให้โบนัสของ Jack (attack_speed,
+        # move_speed_multiplier, ดูดซับดาเมจตอนการ์ด) ทำงานต่อเนื่อง
+        caster.add_status("kinetic", self.BUFF_TIME)
+        caster.hp += self.HEAL
+        caster.stamina += self.ENERGY_COST
         caster.state_machine.change(State.CAST, lock=0.25)
-        caster.vel.x = caster.facing * 650.0
-        caster.play_pose("rush", 0.25)
-        caster.burst(16, S.WHITE, 260)
+        self.play_pose(caster, "cast", 0.25)
+        caster.burst(20, S.WHITE, 240)
 
 
-class OverdriveRush(BaseSkill):
-    NAME = "OVERDRIVE RUSH"
+class GhostFrenzy(BaseSkill):
+    NAME = "GHOST FRENZY"
     DESCRIPTION = "Devastating multi-hit bionic combo executing unblockable finisher damage."
     COOLDOWN = 10.0
     ENERGY_COST = 50.0
     ICON = "emptyImage.png"
-    HITS = 5
+    HITS = 7
     INTERVAL = 0.13
 
     def __init__(self) -> None:
@@ -109,7 +143,7 @@ class OverdriveRush(BaseSkill):
     def execute(self, caster: Fighter, target: Fighter) -> None:
         self._caster, self._remaining, self._timer = caster, self.HITS, 0.0
         caster.state_machine.change(State.CAST, lock=self.HITS * self.INTERVAL + 0.25)
-        caster.play_pose("rush", self.HITS * self.INTERVAL + 0.2)
+        self.play_pose(caster, "rush", self.HITS * self.INTERVAL + 0.2)
 
     def update(self, dt: float) -> None:
         super().update(dt)
@@ -172,7 +206,7 @@ class NaniteKunai(BaseSkill):
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=0.3)
-        caster.play_pose("throw", 0.3)
+        self.play_pose(caster, "throw", 0.3)
         mult = caster.outgoing_damage_multiplier()
         for i, vy in enumerate((-60.0, 0.0, 60.0)):
             kunai = KunaiProjectile(
@@ -196,7 +230,7 @@ class ShadowVeil(BaseSkill):
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.add_status("veiled", 5.0)
         caster.state_machine.change(State.CAST, lock=0.3)
-        caster.play_pose("cast", 0.3)
+        self.play_pose(caster, "cast", 0.3)
         caster.burst(24, (90, 90, 100), 200)
         if caster.world is not None:
             caster.world.spawn_effect(SmokeScreen(caster))

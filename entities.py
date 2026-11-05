@@ -210,6 +210,7 @@ class Fighter(GameObject, BaseFighter):
         self._pose_len = 0.0
         self._frame = 0
         self._frame_timer = 0.0
+        self._pose_frames: Optional[list[pygame.Surface]] = None
 
         self.state_machine = StateMachine()
         self.hitbox = Hitbox()
@@ -219,6 +220,8 @@ class Fighter(GameObject, BaseFighter):
 
         self._sheet = load_image(self.SHEET_PATH)
         self._frames = self._slice_sheet()
+        for skill in self.skills:
+            skill.load_sprite()
 
 
 
@@ -340,8 +343,10 @@ class Fighter(GameObject, BaseFighter):
     def apply_bleed(self, dps: float, duration: float, source: "Fighter") -> None:
         self._bleeds.append([duration, dps, source])
 
-    def play_pose(self, pose: str, length: float) -> None:
+    def play_pose(self, pose: str, length: float,
+                  frames: Optional[list[pygame.Surface]] = None) -> None:
         self._pose, self._pose_time, self._pose_len = pose, 0.0, length
+        self._pose_frames = frames
         self._frame = 0
         self._frame_timer = 0.0
 
@@ -597,8 +602,8 @@ class Fighter(GameObject, BaseFighter):
 
 class Jack(Fighter):
     NAME = "T. Jack"
-    TITLE = "THE URBAN BRAWLER"
-    BASE_STATS = {"PWR": 90, "DEF": 70, "SPD": 85}
+    TITLE = "God of Python"
+    BASE_STATS = {"PWR": 85, "DEF": 65, "SPD": 95}
     SHEET_PATH = "imageFolder/kai_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -606,8 +611,8 @@ class Jack(Fighter):
         self._kinetic_bank = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import KineticCharge, OverdriveRush, PlasmaHook
-        return [PlasmaHook(), KineticCharge(), OverdriveRush()]
+        from skill import Power_Pellet, GhostFrenzy, PacMan_Chomp
+        return [PacMan_Chomp(), Power_Pellet(), GhostFrenzy()]
 
     def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
         if blocked and self.has_status("kinetic"):
