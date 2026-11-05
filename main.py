@@ -63,7 +63,7 @@ class MenuScene(Scene):
             draw_text(surface, "PRESS ENTER", 20, S.WHITE, (640, 320), "midtop")
 
         for col, x, lines in (
-            (S.P1_COLOR, 340, ["PLAYER 1", "A / D  move     W  jump     S  guard", "F  attack", "Q  E  C  skills"]),
+            (S.P1_COLOR, 340, ["PLAYER 1", "A / D  move     W  jump     S  guard", "V  attack", "F G H  skills"]),
             (S.P2_COLOR, 940, ["PLAYER 2", "← / →  move   ↑  jump   ↓  guard", "NUM 0   attack", "NUM 1 2 3  skills"]),
         ):
             box = pygame.Rect(x - 180, 380, 360, 120)

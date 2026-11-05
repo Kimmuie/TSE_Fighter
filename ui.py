@@ -318,14 +318,16 @@ class FighterCard:
             for j, line in enumerate(wrap_text(sk.DESCRIPTION, 9, desc_w)[:3]):
                 draw_text(surface, line, 9, S.GREY, (desc_x, sr.y + 22 + j * 12))
         stats = preview.stats_percent
-        for i, key in enumerate(("PWR", "DEF", "SPD", "SPC")):
+        stat_labels = (("Power", "PWR"), ("Defense", "DEF"), ("Speed", "SPD"))
+        for i, (label, key) in enumerate(stat_labels):
             bx = r.x + 16 + (i % 2) * ((r.w - 32) // 2 + 6)
             by = r.y + 490 + (i // 2) * 26
             bw = (r.w - 32) // 2 - 12
-            draw_text(surface, key, 9, S.WHITE, (bx, by))
-            draw_text(surface, f"{stats[key]}%", 9, S.WHITE, (bx + bw, by), "topright")
+            value = stats[key]
+            draw_text(surface, label, 9, S.WHITE, (bx, by))
+            draw_text(surface, f"{value}%", 9, S.WHITE, (bx + bw, by), "topright")
             pygame.draw.rect(surface, S.DARK, (bx, by + 12, bw, 4))
-            pygame.draw.rect(surface, col, (bx, by + 12, int(bw * stats[key] / 100), 4))
+            pygame.draw.rect(surface, col, (bx, by + 12, int(bw * value / 100), 4))
 
 
 class RosterGrid:

@@ -162,10 +162,10 @@ class InputController:
 def make_player_one_controller() -> InputController:
     km = {
         "left": (pygame.K_a,), "right": (pygame.K_d,), "jump": (pygame.K_w,),
-        "block": (pygame.K_s,), "attack": (pygame.K_f,),
-        "skill1": (pygame.K_q,), "skill2": (pygame.K_e,), "skill3": (pygame.K_c,),
+        "block": (pygame.K_s,), "attack": (pygame.K_v,),
+        "skill1": (pygame.K_f,), "skill2": (pygame.K_g,), "skill3": (pygame.K_h,),
     }
-    lb = {"attack": "F", "skill1": "Q", "skill2": "E", "skill3": "C"}
+    lb = {"attack": "V", "skill1": "F", "skill2": "G", "skill3": "H"}
     return InputController(km, lb)
 
 

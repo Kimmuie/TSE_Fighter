@@ -181,7 +181,7 @@ class BaseFighter(ABC):
 class Fighter(GameObject, BaseFighter):
     NAME = "FIGHTER"
     TITLE = ""
-    BASE_STATS: dict[str, int] = {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}
+    BASE_STATS: dict[str, int] = {"PWR": 50, "DEF": 50, "SPD": 50}
     SIZE = (70, 170)
     SHEET_PATH = "imageFolder/emptyImage.png"
 
@@ -304,10 +304,6 @@ class Fighter(GameObject, BaseFighter):
     @property
     def speed(self) -> float:
         return self._stats["SPD"] / 100.0
-
-    @property
-    def special(self) -> float:
-        return self._stats["SPC"] / 100.0
 
     @property
     def stats_percent(self) -> dict[str, int]:
@@ -602,7 +598,7 @@ class Fighter(GameObject, BaseFighter):
 class Jack(Fighter):
     NAME = "T. Jack"
     TITLE = "THE URBAN BRAWLER"
-    BASE_STATS = {"PWR": 90, "DEF": 70, "SPD": 85, "SPC": 95}
+    BASE_STATS = {"PWR": 90, "DEF": 70, "SPD": 85}
     SHEET_PATH = "imageFolder/kai_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -647,7 +643,7 @@ class Jack(Fighter):
 class Art(Fighter):
     NAME = "T. Art"
     TITLE = "SHADOW SHINOBI"
-    BASE_STATS = {"PWR": 75, "DEF": 60, "SPD": 98, "SPC": 90}
+    BASE_STATS = {"PWR": 75, "DEF": 60, "SPD": 98}
     SHEET_PATH = "imageFolder/nyx_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
@@ -672,7 +668,7 @@ class Art(Fighter):
         if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
             return
         self._counter_cd = 0.6
-        crit = (6 + 8 * self.special) * 2.0
+        crit = (6 + 8 * self.power) * 2.0
         counter = HitInfo(
             attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
             direction=1 if hit.attacker.pos.x >= self.pos.x else -1,

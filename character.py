@@ -41,7 +41,7 @@ CHARACTERS = [
         color=S.GREY,
         portrait_path="imageFolder/kai_portrait.png",
         sheet_path="imageFolder/kai_sheet.png",
-        base_stats={"PWR": 90, "DEF": 70, "SPD": 85, "SPC": 95},
+        base_stats=Jack.BASE_STATS.copy(),
         fighter_class=Jack,
         playable=True,
     ),
@@ -51,7 +51,7 @@ CHARACTERS = [
         color=S.GREY,
         portrait_path="imageFolder/nyx_portrait.png",
         sheet_path="imageFolder/nyx_sheet.png",
-        base_stats={"PWR": 75, "DEF": 60, "SPD": 98, "SPC": 90},
+        base_stats=Art.BASE_STATS.copy(),
         fighter_class=Art,
         playable=True,
     ),
@@ -59,17 +59,17 @@ CHARACTERS = [
 
 LOCKED = [
     CharacterData("T. Piya", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("T. Pao", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("T. Wachira", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("T. May", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("Oat", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
     CharacterData("Night", "COMING SOON", S.GREY, "imageFolder/emptyImage.png", "imageFolder/emptyImage.png",
-                  {"PWR": 50, "DEF": 50, "SPD": 50, "SPC": 50}),
+                  {"PWR": 50, "DEF": 50, "SPD": 50}),
 ]
 
 ROSTER: list[CharacterData] = CHARACTERS + LOCKED
