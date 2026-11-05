@@ -474,3 +474,106 @@ class ShadowVeil(BaseSkill):
         caster.burst(24, (90, 90, 100), 200)
         if caster.world is not None:
             caster.world.spawn_effect(SmokeScreen(caster))
+
+
+# ================================================================== Oat
+class MusclePunch(BaseSkill):
+    NAME = "Muscle Punch"
+    DESCRIPTION = "ชกด้วยกล้ามแขนสุดทรงพลัง สร้างความเสียหายสูง"
+    COOLDOWN = 7.0
+    ENERGY_COST = 35.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = None  
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.state_machine.change(State.CAST, lock=0.7)
+        caster.vel.x = caster.facing * 120.0     # ก้าวเข้าหาเล็กน้อยตอนชก
+        caster.hitbox.arm(
+            damage=(18 + 18 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=110, height=100, offset_x=65, offset_y=110,
+            windup=0.3, active=0.15,
+            knockback=(800, -250), stun=0.7,
+            tags={"wall_bounce"},
+        )
+        self.play_pose(caster, "punch", 0.5)
+        caster.burst(18, S.WHITE, 300)
+
+class ProteinShake(BaseSkill):
+    NAME = "Protein Shake"
+    DESCRIPTION = "ดื่มเวย์เพิ่่มพลังโจมตีและฟื้นฟู HP"
+    COOLDOWN = 6.0
+    ENERGY_COST = 20.0
+    ICON = "emptyImage.png"
+    BUFF_TIME = 5.0
+    HEAL = 8.0
+    SHEET_PATH = "imageFolder/jack_skill2.png"
+    SHEET_TIME = 0.8
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        caster.add_status("protein", self.BUFF_TIME)   # เพิ่มพลังโจมตีชั่วคราว
+        caster.hp += self.HEAL                         # ฟื้นฟู HP
+        caster.state_machine.change(State.CAST, lock=0.4)
+        self.play_pose(caster, "cast", self.SHEET_TIME)
+        caster.burst(20, S.WHITE, 240)
+
+class BeastMode(BaseSkill):
+    NAME = "Beast Mode"
+    DESCRIPTION = "เกร็งกล้ามเนื้อเพิ่มพลัง และปล่อยหมัดคอมโบต่อเนื่อง"
+    COOLDOWN = 12.0
+    ENERGY_COST = 50.0
+    ICON = "emptyImage.png"
+    SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
+    BUFF_STATUS = "kinetic"      # โบนัสความเร็วโจมตี/เคลื่อนที่ของ Jack
+    BUFF_TIME = 6.0
+    HITS = 6
+    INTERVAL = 0.11
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._caster: Optional[Fighter] = None
+        self._remaining = 0
+        self._timer = 0.0
+
+    def execute(self, caster: Fighter, target: Fighter) -> None:
+        total = self.HITS * self.INTERVAL
+        self._caster, self._remaining = caster, self.HITS
+        caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
+        caster.vel.x = 0
+        caster.state_machine.change(State.CAST, lock=total + 0.2)
+        self.play_pose(caster, "rush", total)
+        caster.burst(28, S.WHITE, 320)
+        self._strike(caster)              # หมัดแรกออกทันที
+        self._timer = self.INTERVAL       # หมัดต่อไปรอตามจังหวะ
+
+    def _strike(self, c: Fighter) -> None:
+        self._remaining -= 1
+        final = self._remaining == 0
+        mult = c.outgoing_damage_multiplier() * (2.0 if final else 1.0)
+        c.hitbox.arm(
+            damage=(2.5 + 2.5 * c.power) * mult,
+            width=105, height=110, offset_x=60, offset_y=105,
+            windup=0.0, active=0.1,
+            knockback=(650, -400) if final else (80, -30),
+            stun=0.55 if final else 0.2,
+            tags={"wall_bounce"} if final else {"beast"},
+        )
+        c.vel.x = c.facing * (200.0 if final else 320.0)
+        c.burst(6, S.P1_COLOR, 260)
+
+    def update(self, dt: float) -> None:
+        super().update(dt)
+        c = self._caster
+        if c is None or self._remaining <= 0:
+            return
+        if c.is_ko or c.state_machine.state == State.HIT:   # ถูกขัดจังหวะ
+            self._remaining = 0
+            return
+        self._timer -= dt
+        if self._timer > 0:
+            return
+        self._timer = self.INTERVAL
+        self._strike(c)
+
+    def reset(self) -> None:
+        super().reset()
+        self._remaining = 0
