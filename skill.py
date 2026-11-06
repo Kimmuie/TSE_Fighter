@@ -85,10 +85,10 @@ class BaseSkill(ABC):
 class PacMan_Chomp(BaseSkill):
     NAME = "Pac-Man Chomp"
     DESCRIPTION = "พุ่งกัดศัตรูอย่างรวดเร็ว"
-    COOLDOWN = 3.0
+    COOLDOWN = 5.0
     ENERGY_COST = 15.0
-    ICON = "emptyImage.png"
-    DASH_SPEED = 1100.0
+    ICON = "skill/jack_iconskill_1.png"
+    DASH_SPEED = 1200.0
     DASH_TIME = 0.30
     SHEET_PATH = "imageFolder/jack_skill1.png"
     SHEET_TIME = 0.4
@@ -113,8 +113,8 @@ class Power_Pellet(BaseSkill):
     DESCRIPTION = "กินเม็ดพลังเพื่อเพิ่มความเร็ว"
     COOLDOWN = 12.0
     ENERGY_COST = 20.0
-    ICON = "emptyImage.png"
-    BUFF_TIME = 5.0
+    ICON = "skill/jack_iconskill_2.png"
+    BUFF_TIME = 3.5
     HEAL = 8.0
     SHEET_PATH = "imageFolder/jack_skill2.png"
     SHEET_TIME = 1.2
@@ -135,8 +135,8 @@ class GhostFrenzy(BaseSkill):
     DESCRIPTION = "Devastating multi-hit bionic combo executing unblockable finisher damage."
     COOLDOWN = 10.0
     ENERGY_COST = 50.0
-    ICON = "emptyImage.png"
-    HITS = 7
+    ICON = "skill/jack_iconskill_3.png"
+    HITS = 5
     INTERVAL = 0.13
 
     def __init__(self) -> None:
@@ -186,7 +186,7 @@ class CriticalRoast(BaseSkill):
     DESCRIPTION = "ยิงคลื่นเสียงจากคำพูดโจมตีศัตรู"
     COOLDOWN = 5.0
     ENERGY_COST = 25.0
-    ICON = "emptyImage.png"
+    ICON = "skill/art_iconskill_1.png"
     SHEET_PATH = "imageFolder/art_skill1.png"
     SHEET_TIME = 0.3
 
@@ -204,7 +204,7 @@ class CriticalRoast(BaseSkill):
                 caster.rect.centery,
                 vx=500 * caster.facing,
                 vy=vy,
-                damage=4 * mult,
+                damage=4.5 * mult,
                 sprite="sound1_projectile.png",
                 lifespan=0.5,
                 size=(120, 70)
@@ -216,9 +216,9 @@ class CriticalRoast(BaseSkill):
 class ShutUp(BaseSkill):
     NAME = "Shut Up!"
     DESCRIPTION = "ตะโกนผลักศัตรูออกไป"
-    COOLDOWN = 3.0
-    ENERGY_COST = 15.0
-    ICON = "emptyImage.png"
+    COOLDOWN = 4.0
+    ENERGY_COST = 20.0
+    ICON = "skill/art_iconskill_2.png"
     SHEET_PATH = "imageFolder/art_skill2.png"
     SHEET_TIME = 0.35
 
@@ -229,9 +229,9 @@ class ShutUp(BaseSkill):
         caster.hitbox.arm(
             damage=(3 + 3 * caster.power) * caster.outgoing_damage_multiplier(),
             width=160, height=140, offset_x=90, offset_y=100,
-            windup=0.08, active=0.15,
-            knockback=(900, -120), unblockable=True,
-            stun=0.4, tags={"shout"},
+            windup=0.05, active=0.15,
+            knockback=(1100, -700), unblockable=True,
+            stun=0.5, tags={"shout"},
         )
         self.play_pose(caster, "cast", 0.35)
         caster.burst(22, S.WHITE, 340)
@@ -240,9 +240,9 @@ class ShutUp(BaseSkill):
 class EmotionalDamage(BaseSkill):
     NAME = "EMOTIONAL DAMAGE"
     DESCRIPTION = "ปล่อยคำพูดทำลายจิตใจพร้อมคลื่นเสียงรุนแรง"
-    COOLDOWN = 9.0
+    COOLDOWN = 8.0
     ENERGY_COST = 35.0
-    ICON = "emptyImage.png"
+    ICON = "skill/art_iconskill_3.png"
     WAVE_SPEED = 700
     SHEET_PATH = "imageFolder/art_skill3.png"
     SHEET_TIME = 0.45
@@ -256,9 +256,9 @@ class EmotionalDamage(BaseSkill):
         # 1 คลื่นเสียงระยะประชิดหน้าตัวละคร
         caster.hitbox.arm(
             damage=(5 + 5 * caster.power) * mult,
-            width=120, height=140, offset_x=70, offset_y=100,
+            width=120, height=60, offset_x=70, offset_y=100,
             windup=0.1, active=0.15,
-            knockback=(700, -200), unblockable=True,
+            knockback=(850, -200), unblockable=True,
             stun=0.5, tags={"shout"},
         )
 
@@ -267,12 +267,12 @@ class EmotionalDamage(BaseSkill):
             caster,
             caster.rect.centerx,
             caster.rect.centery,
-            vx=450 * caster.facing,
+            vx=self.WAVE_SPEED * caster.facing,
             vy=0,
-            damage=20 * mult,
+            damage=22.5 * mult,
             sprite="sound2_projectile.png",
             lifespan=1.5,
-            size=(120, 70)
+            size=(120, 60)
         )
 
         if caster.world is not None:
@@ -293,8 +293,8 @@ class CPUSmash(BaseSkill):
     NAME = "CPU SMASH"
     DESCRIPTION = "ฟาด CPU ยักษ์ใส่ศัตรูอย่างแรง ทะลุการ์ดและกระแทกถอยหลัง"
     COOLDOWN = 9.0
-    ENERGY_COST = 45.0
-    ICON = "emptyImage.png"
+    ENERGY_COST = 30.0
+    ICON = "skill/pao_iconskill_1.png"
     SHEET_PATH = "imageFolder/cpu_smash_sheet.png"   # sprite sheet 1 แถว 4 เฟรม (ไม่ใส่ = ใช้ท่าต่อย)
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
@@ -314,12 +314,12 @@ class OverclockCharge(BaseSkill):
     NAME = "Overclock Charge"
     DESCRIPTION = "เพิ่มพลังแล้วพุ่งชนศัตรู"
     COOLDOWN = 8.0
-    ENERGY_COST = 30.0
-    ICON = "emptyImage.png"
+    ENERGY_COST = 25.0
+    ICON = "skill/pao_iconskill_2.png"
     SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
     BUFF_STATUS = "kinetic"      # status ที่ให้โบนัสความเร็ว (Jack ใช้อยู่)
     BUFF_TIME = 4.0
-    CHARGE_TIME = 0.35           # ช่วงชาร์จก่อนพุ่ง
+    CHARGE_TIME = 0.4           # ช่วงชาร์จก่อนพุ่ง
     DASH_TIME = 0.35
     DASH_SPEED = 1000.0
 
@@ -351,10 +351,10 @@ class OverclockCharge(BaseSkill):
         # จังหวะ 2: พุ่งชน
         c.vel.x = c.facing * self.DASH_SPEED
         c.hitbox.arm(
-            damage=(10 + 10 * c.power) * c.outgoing_damage_multiplier() * 1.3,
+            damage=(13 + 13 * c.power) * c.outgoing_damage_multiplier() * 1.3,
             width=120, height=140, offset_x=60, offset_y=105,
             windup=0.0, active=self.DASH_TIME,
-            knockback=(650, -350), stun=0.6,
+            knockback=(850, -500), stun=0.6,
             tags={"overclock"},
         )
         self.play_pose(c, "rush", self.DASH_TIME)
@@ -367,9 +367,9 @@ class OverclockCharge(BaseSkill):
 class BlueScreen_Crash(BaseSkill):
     NAME = "Blue Screen Crash"
     DESCRIPTION = "ทุบพื้นปล่อยคลื่นกระแทกวงกว้าง"
-    COOLDOWN = 10.0
-    ENERGY_COST = 40.0
-    ICON = "emptyImage.png"
+    COOLDOWN = 8.0
+    ENERGY_COST = 30.0
+    ICON = "skill/pao_iconskill_3.png"
     SHEET_PATH = None              # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
     BLUE = (40, 90, 220)           # สีฟ้าแบบ Blue Screen
 
@@ -378,11 +378,11 @@ class BlueScreen_Crash(BaseSkill):
         caster.vel.x = 0
         # คลื่นกระแทกวงกว้าง: hitbox กว้างครอบทั้งสองข้างของตัวละคร ต่ำติดพื้น
         caster.hitbox.arm(
-            damage=(10 + 10 * caster.power) * caster.outgoing_damage_multiplier(),
-            width=460, height=80, offset_x=0, offset_y=50,
+            damage=(13 + 13 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=550, height=70, offset_x=0, offset_y=50,
             windup=0.3, active=0.15,
             knockback=(520, -420), unblockable=True,
-            stun=0.8, tags={"blue_screen"},
+            stun=1.0, tags={"blue_screen"},
         )
         self.play_pose(caster, "attack", 0.7)
         caster.burst(14, self.BLUE, 220)
@@ -401,7 +401,7 @@ class PhantomDash(BaseSkill):
     DESCRIPTION = "Phases through projectiles with brief invulnerability frames, emerging behind the foe."
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
-    ICON = "emptyImage.png"
+    ICON = "skill/piya_iconskill_1.png"
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         old = caster.rect.center
@@ -417,12 +417,12 @@ class PhantomDash(BaseSkill):
             caster.world.spawn_particles(old[0], old[1], S.P2_COLOR, 18, 300)
         caster.burst(18, S.P2_COLOR, 300)
 
-class VanishingCounter(BaseSkill):
-    NAME = "Vanishing Counter"
+class SuckerPunch(BaseSkill):
+    NAME = "Sucker Punch"
     DESCRIPTION = "หายตัวหลบแล้วสวนกลับ"
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
-    ICON = "emptyImage.png"
+    ICON = "skill/piya_iconskill_2.png"
     SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
     VANISH_TIME = 0.4            # ช่วงหายตัว (อมตะ)
     COUNTER_BONUS = 1.5          # ตัวคูณดาเมจเมื่อศัตรูกำลังโจมตีตอนโผล่
@@ -467,7 +467,7 @@ class VanishingCounter(BaseSkill):
             damage=(8 + 8 * c.power) * c.outgoing_damage_multiplier() * mult,
             width=100, height=120, offset_x=55, offset_y=105,
             windup=0.05, active=0.15,
-            knockback=(450, -300), stun=0.5,
+            knockback=(450, -300), stun=0.7, unblockable=True,
             tags={"counter"},
         )
         self.play_pose(c, "attack", 0.3)
@@ -484,7 +484,7 @@ class ShadowVeil(BaseSkill):
     DESCRIPTION = "Deploys a smoke screen that conceals hitboxes and guarantees critical counters."
     COOLDOWN = 12.0
     ENERGY_COST = 35.0
-    ICON = "emptyImage.png"
+    ICON = "skill/piya_iconskill_3.png"
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.add_status("veiled", 5.0)
@@ -501,7 +501,7 @@ class MusclePunch(BaseSkill):
     DESCRIPTION = "ชกด้วยกล้ามแขนสุดทรงพลัง สร้างความเสียหายสูง"
     COOLDOWN = 7.0
     ENERGY_COST = 35.0
-    ICON = "emptyImage.png"
+    ICON = "skill/oat_iconskill_1.png"
     SHEET_PATH = None  
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
@@ -522,7 +522,7 @@ class ProteinShake(BaseSkill):
     DESCRIPTION = "ดื่มเวย์เพิ่่มพลังโจมตีและฟื้นฟู HP"
     COOLDOWN = 6.0
     ENERGY_COST = 20.0
-    ICON = "emptyImage.png"
+    ICON = "skill/oat_iconskill_2.png"
     BUFF_TIME = 5.0
     HEAL = 8.0
     SHEET_PATH = "imageFolder/jack_skill2.png"
@@ -540,7 +540,7 @@ class BeastMode(BaseSkill):
     DESCRIPTION = "เกร็งกล้ามเนื้อเพิ่มพลัง และปล่อยหมัดคอมโบต่อเนื่อง"
     COOLDOWN = 12.0
     ENERGY_COST = 50.0
-    ICON = "emptyImage.png"
+    ICON = "skill/oat_iconskill_3.png"
     SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
     BUFF_STATUS = "kinetic"      # โบนัสความเร็วโจมตี/เคลื่อนที่ของ Jack
     BUFF_TIME = 6.0
@@ -604,7 +604,7 @@ class BottleBomb(BaseSkill):
     DESCRIPTION = "ปาขวดใส่ศัตรูจากระยะไกล สร้างความเสียหายและทำให้ชะงัก"
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
-    ICON = "emptyImage.png"
+    ICON = "skill/jinn_iconskill_1.png"
     SHEET_PATH = "imageFolder/bottle_bomb_sheet.png"   # sprite sheet 1 แถว 4 เฟรม
     FREEZE_TIME = 3.0
     MIN_RANGE = 150.0      # ระยะใกล้สุดที่ขวดตก
@@ -635,7 +635,7 @@ class MotorcycleRush(BaseSkill):
     DESCRIPTION = "ขี่มอเตอร์ไซค์พุ่งชนศัตรูอย่างรวดเร็ว"
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
-    ICON = "emptyImage.png"
+    ICON = "skill/jinn_iconskill_2.png"
     DASH_SPEED = 1100.0
     DASH_TIME = 0.30
     SHEET_PATH = "imageFolder/jack_skill1.png"
@@ -658,7 +658,7 @@ class GansterDrift(BaseSkill):
     DESCRIPTION = "ดริฟต์มอเตอร์ไซค์เป็นวงกว้าง สร้างความเสียหายรอบตัวและกระแทกศัตรูกระเด็น"
     COOLDOWN = 8.0
     ENERGY_COST = 35.0
-    ICON = "emptyImage.png"
+    ICON = "skill/jinn_iconskill_3.png"
     SHEET_PATH = "imageFolder/gangster_drift_sheet.png"   # sprite sheet 1 แถว 4 เฟรม (ไม่ใส่ = ใช้ท่าต่อย)
 
     def execute(self, caster: Fighter, target: Fighter) -> None:

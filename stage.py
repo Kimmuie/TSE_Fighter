@@ -17,10 +17,10 @@ MAP_PATHS = [
 ]
 
 MAP_NAMES = [
-    "NIGHT PURPLE",
-    "OCEAN BLUE",
-    "SUNSET RED",
-    "FOREST GREEN",
+    "Classroom",
+    "Library",
+    "Nightclub",
+    "Green Canteen",
 ]
 
 

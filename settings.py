@@ -22,7 +22,7 @@ GOLD = (255, 214, 0)
 
 # ---------- สนามต่อสู้ ----------
 ARENA = pygame.Rect(16, 118, 1248, 486)
-GROUND_Y = ARENA.bottom - 48
+GROUND_Y = ARENA.bottom - 20
 
 # ---------- ฟิสิกส์ / สถานะนักสู้ ----------
 GRAVITY = 2600.0

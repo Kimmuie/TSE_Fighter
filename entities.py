@@ -573,8 +573,8 @@ class Fighter(GameObject, BaseFighter):
 
     def draw(self, surface: pygame.Surface) -> None:
         shadow = pygame.Rect(0, 0, 90, 14)
-        shadow.center = (self.rect.centerx, S.GROUND_Y + 2)
-        pygame.draw.ellipse(surface, (150, 100, 0), shadow)
+        shadow.center = (self.rect.centerx, S.GROUND_Y - 17)
+        pygame.draw.ellipse(surface, (31, 31, 31), shadow)
 
         
         if self.is_ko:
@@ -638,8 +638,8 @@ class Fighter(GameObject, BaseFighter):
 class Jack(Fighter):
     NAME = "T. Jack"
     TITLE = "God of Python"
-    BASE_STATS = {"PWR": 85, "DEF": 65, "SPD": 95}
-    SHEET_PATH = "imageFolder/kai_sheet.png"
+    BASE_STATS = {"PWR": 60, "DEF": 60, "SPD": 95}
+    SHEET_PATH = "imageFolder/jack_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
@@ -683,8 +683,8 @@ class Jack(Fighter):
 class Art(Fighter):
     NAME = "T. Art"
     TITLE = "The Toxic Speaker"
-    BASE_STATS = {"PWR": 90, "DEF": 60, "SPD": 75}
-    SHEET_PATH = "imageFolder/nyx_sheet.png"
+    BASE_STATS = {"PWR": 95, "DEF": 60, "SPD": 75}
+    SHEET_PATH = "imageFolder/art_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
@@ -725,8 +725,8 @@ class Art(Fighter):
 class Pao(Fighter):
     NAME = "T. Pao"
     TITLE = "The CPU Destroyer"
-    BASE_STATS = {"PWR": 100, "DEF": 95, "SPD": 40}
-    SHEET_PATH = "imageFolder/nyx_sheet.png"
+    BASE_STATS = {"PWR": 100, "DEF": 100, "SPD": 40}
+    SHEET_PATH = "imageFolder/ex_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
@@ -767,16 +767,16 @@ class Pao(Fighter):
 class Piya(Fighter):
     NAME = "T. Piya"
     TITLE = "The Missing Teacher"
-    BASE_STATS = {"PWR": 70, "DEF": 55, "SPD": 100}
-    SHEET_PATH = "imageFolder/kai_sheet.png"
+    BASE_STATS = {"PWR": 75, "DEF": 55, "SPD": 100}
+    SHEET_PATH = "imageFolder/ex_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
         self._kinetic_bank = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import PhantomDash, VanishingCounter, ShadowVeil
-        return [PhantomDash(), VanishingCounter(), ShadowVeil()]
+        from skill import PhantomDash, SuckerPunch, ShadowVeil
+        return [PhantomDash(), SuckerPunch(), ShadowVeil()]
 
     def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
         if blocked and self.has_status("kinetic"):
@@ -813,7 +813,7 @@ class Oat(Fighter):
     NAME = "Oat"
     TITLE = "Body Builder"
     BASE_STATS = {"PWR": 95, "DEF": 100, "SPD": 55}
-    SHEET_PATH = "imageFolder/nyx_sheet.png"
+    SHEET_PATH = "imageFolder/ex_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
@@ -855,7 +855,7 @@ class Jin(Fighter):
     NAME = "Jin"
     TITLE = "Hole Destroyer"
     BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
-    SHEET_PATH = "imageFolder/nyx_sheet.png"
+    SHEET_PATH = "imageFolder/ex_sheet.png"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
