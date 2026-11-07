@@ -196,11 +196,9 @@ class BaseFighter(ABC):
     def create_skills(self) -> list["BaseSkill"]:
         pass
 
-    @abstractmethod
     def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
         pass
 
-    @abstractmethod
     def on_hit_landed(self, hit: HitInfo, target: "Fighter") -> None:
         pass
 
@@ -640,26 +638,32 @@ class Jack(Fighter):
     TITLE = "God of Python"
     BASE_STATS = {"PWR": 60, "DEF": 60, "SPD": 95}
     SHEET_PATH = "imageFolder/jack_sheet.png"
+    PORTRAIT_PATH="imageFolder/jack_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._kinetic_bank = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
         from skill import Power_Pellet, GhostFrenzy, PacMan_Chomp
         return [PacMan_Chomp(), Power_Pellet(), GhostFrenzy()]
 
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        if blocked and self.has_status("kinetic"):
-            self._kinetic_bank = min(30.0, self._kinetic_bank + damage * 2)
-            self.energy += damage * 2
-            self.burst(6, S.WHITE, 200)
-            return 0.0
-        return damage
+    # kinetic buff
 
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.0 + self._kinetic_bank / 40.0
+    
 
+    # def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+    #     if blocked and self.has_status("kinetic"):
+    #         self.burst(6, S.WHITE, 200)
+    #         return 0.1
+    #     elif self.has_status("kinetic"):
+    #         self.burst(6, S.RED, 200)
+    #         return damage * 0.8
+    #     return damage
+
+    # def outgoing_damage_multiplier(self) -> float:
+    #     return 1.5 if self.has_status("kinetic") else 1.0
+    
     @property
     def attack_speed(self) -> float:
         return 1.5 if self.has_status("kinetic") else 1.0
@@ -668,65 +672,30 @@ class Jack(Fighter):
     def move_speed_multiplier(self) -> float:
         return 1.45 if self.has_status("kinetic") else 1.0
 
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        self.energy += damage * 0.5
-
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 6
-        self._kinetic_bank = 0.0
-
-    def reset(self, x: float, facing: int) -> None:
-        super().reset(x, facing)
-        self._kinetic_bank = 0.0
-
 
 class Art(Fighter):
     NAME = "T. Art"
     TITLE = "The Toxic Speaker"
     BASE_STATS = {"PWR": 95, "DEF": 60, "SPD": 75}
     SHEET_PATH = "imageFolder/art_sheet.png"
+    PORTRAIT_PATH="imageFolder/art_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._counter_cd = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
         from skill import CriticalRoast, ShutUp, EmotionalDamage
         return [CriticalRoast(), ShutUp(), EmotionalDamage()]
-
-    def update(self, dt: float, *args: object) -> None:
-        self._counter_cd = max(0.0, self._counter_cd - dt)
-        super().update(dt)
-
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        return damage * 0.5 if self.has_status("veiled") else damage
-
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.5 if self.has_status("veiled") else 1.0
-
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
-            return
-        self._counter_cd = 0.6
-        crit = (6 + 8 * self.power) * 2.0
-        counter = HitInfo(
-            attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
-            direction=1 if hit.attacker.pos.x >= self.pos.x else -1,
-            unblockable=True, stun=0.45, tags=frozenset({"counter", "crit"}),
-        )
-        if self.world is not None:
-            self.world.spawn_effect(FloatingText("CRITICAL COUNTER!", self.pos.x, self.pos.y - 190, S.WHITE))
-        hit.attacker.take_hit(counter)
-
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 5
 
 
 class Pao(Fighter):
     NAME = "T. Pao"
     TITLE = "The CPU Destroyer"
     BASE_STATS = {"PWR": 100, "DEF": 100, "SPD": 40}
-    SHEET_PATH = "imageFolder/ex_sheet.png"
+    SHEET_PATH = "imageFolder/pao_sheet.png"
+    PORTRAIT_PATH="imageFolder/pao_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
@@ -736,158 +705,71 @@ class Pao(Fighter):
         from skill import CPUSmash, OverclockCharge, BlueScreen_Crash
         return [CPUSmash(), OverclockCharge(), BlueScreen_Crash()]
 
-    def update(self, dt: float, *args: object) -> None:
-        self._counter_cd = max(0.0, self._counter_cd - dt)
-        super().update(dt)
-
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        return damage * 0.5 if self.has_status("veiled") else damage
-
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.5 if self.has_status("veiled") else 1.0
-
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
-            return
-        self._counter_cd = 0.6
-        crit = (6 + 8 * self.power) * 2.0
-        counter = HitInfo(
-            attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
-            direction=1 if hit.attacker.pos.x >= self.pos.x else -1,
-            unblockable=True, stun=0.45, tags=frozenset({"counter", "crit"}),
-        )
-        if self.world is not None:
-            self.world.spawn_effect(FloatingText("CRITICAL COUNTER!", self.pos.x, self.pos.y - 190, S.WHITE))
-        hit.attacker.take_hit(counter)
-
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 5
-
 
 class Piya(Fighter):
     NAME = "T. Piya"
     TITLE = "The Missing Teacher"
     BASE_STATS = {"PWR": 75, "DEF": 55, "SPD": 100}
-    SHEET_PATH = "imageFolder/ex_sheet.png"
+    SHEET_PATH = "imageFolder/piya_sheet.png"
+    PORTRAIT_PATH="imageFolder/piya_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._kinetic_bank = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
         from skill import PhantomDash, SuckerPunch, ShadowVeil
         return [PhantomDash(), SuckerPunch(), ShadowVeil()]
 
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        if blocked and self.has_status("kinetic"):
-            self._kinetic_bank = min(30.0, self._kinetic_bank + damage * 2)
-            self.energy += damage * 2
-            self.burst(6, S.WHITE, 200)
-            return 0.0
-        return damage
-
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.0 + self._kinetic_bank / 40.0
-
-    @property
-    def attack_speed(self) -> float:
-        return 1.5 if self.has_status("kinetic") else 1.0
-
-    @property
-    def move_speed_multiplier(self) -> float:
-        return 1.45 if self.has_status("kinetic") else 1.0
-
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        self.energy += damage * 0.5
-
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 6
-        self._kinetic_bank = 0.0
-
-    def reset(self, x: float, facing: int) -> None:
-        super().reset(x, facing)
-        self._kinetic_bank = 0.0
-
 
 class Oat(Fighter):
     NAME = "Oat"
-    TITLE = "Body Builder"
+    TITLE = "The Body Builder"
     BASE_STATS = {"PWR": 95, "DEF": 100, "SPD": 55}
-    SHEET_PATH = "imageFolder/ex_sheet.png"
+    SHEET_PATH = "imageFolder/oat_sheet.png"
+    PORTRAIT_PATH="imageFolder/oat_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._counter_cd = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
         from skill import MusclePunch, ProteinShake, BeastMode
         return [MusclePunch(), ProteinShake(), BeastMode()]
 
-    def update(self, dt: float, *args: object) -> None:
-        self._counter_cd = max(0.0, self._counter_cd - dt)
-        super().update(dt)
-
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        return damage * 0.5 if self.has_status("veiled") else damage
-
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.5 if self.has_status("veiled") else 1.0
-
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
-            return
-        self._counter_cd = 0.6
-        crit = (6 + 8 * self.power) * 2.0
-        counter = HitInfo(
-            attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
-            direction=1 if hit.attacker.pos.x >= self.pos.x else -1,
-            unblockable=True, stun=0.45, tags=frozenset({"counter", "crit"}),
-        )
-        if self.world is not None:
-            self.world.spawn_effect(FloatingText("CRITICAL COUNTER!", self.pos.x, self.pos.y - 190, S.WHITE))
-        hit.attacker.take_hit(counter)
-
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 5
-
 
 class Jin(Fighter):
-    NAME = "Jin"
-    TITLE = "Hole Destroyer"
+    NAME = "Jinn"
+    TITLE = "The Hole Destroyer"
     BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
-    SHEET_PATH = "imageFolder/ex_sheet.png"
+    SHEET_PATH = "imageFolder/jinn_sheet.png"
+    PORTRAIT_PATH="imageFolder/jinn_portrait.png"
+    PLAYABLE = True
 
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__(*args, **kwargs)
-        self._counter_cd = 0.0
 
     def create_skills(self) -> list["BaseSkill"]:
         from skill import BottleBomb, MotorcycleRush, GansterDrift
         return [BottleBomb(), MotorcycleRush(), GansterDrift()]
 
-    def update(self, dt: float, *args: object) -> None:
-        self._counter_cd = max(0.0, self._counter_cd - dt)
-        super().update(dt)
+class Night(Fighter):
+    NAME = "Night"
+    TITLE = "Coming Soon!"
+    BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
+    PORTRAIT_PATH = "imageFolder/emptyImage.png"
+    PLAYABLE = False
 
-    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
-        return damage * 0.5 if self.has_status("veiled") else damage
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)
 
-    def outgoing_damage_multiplier(self) -> float:
-        return 1.5 if self.has_status("veiled") else 1.0
 
-    def on_damage_taken(self, hit: HitInfo, damage: float) -> None:
-        if not self.has_status("veiled") or self._counter_cd > 0 or "counter" in hit.tags:
-            return
-        self._counter_cd = 0.6
-        crit = (6 + 8 * self.power) * 2.0
-        counter = HitInfo(
-            attacker=self, damage=crit, knockback=pygame.Vector2(420, -320),
-            direction=1 if hit.attacker.pos.x >= self.pos.x else -1,
-            unblockable=True, stun=0.45, tags=frozenset({"counter", "crit"}),
-        )
-        if self.world is not None:
-            self.world.spawn_effect(FloatingText("CRITICAL COUNTER!", self.pos.x, self.pos.y - 190, S.WHITE))
-        hit.attacker.take_hit(counter)
+class Poom(Fighter):
+    NAME = "Poom"
+    TITLE = "Coming Soon!"
+    BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
+    PORTRAIT_PATH = "imageFolder/emptyImage.png"
+    PLAYABLE = False
 
-    def on_hit_landed(self, hit: HitInfo, target: Fighter) -> None:
-        self.energy += 5
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)

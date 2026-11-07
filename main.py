@@ -11,14 +11,14 @@ from typing import Optional
 import pygame
 
 import settings as S
-from character import ROSTER, CharacterData
 from combat import BattleWorld
 from component import make_player_one_controller, make_player_two_controller
-from entities import FloatingText, Fighter
+from entities import ( FloatingText, Fighter, Jack, Art, Pao, Piya, Oat, Jin, Night, Poom )
 from events import EventDispatcher
 from stage import Stage
 from ui import ComboBanner, FighterCard, HUD, RosterGrid, draw_text, load_image
 
+ROSTER = [ Jack, Art, Pao, Piya, Oat, Jin, Night, Poom ]
 
 class Scene(ABC):
     def __init__(self, game: "Game") -> None:
@@ -80,9 +80,9 @@ class SelectScene(Scene):
         self._ready = [False, False]
         self._countdown: Optional[float] = None
         self._previews: dict[tuple[int, str], Fighter] = {}
-        names = [e.name for e in ROSTER]
-        playable = [e.playable for e in ROSTER]
-        paths = [e.portrait_path for e in ROSTER]
+        names = [e.NAME for e in ROSTER]
+        playable = [e.PLAYABLE for e in ROSTER]
+        paths = [e.PORTRAIT_PATH for e in ROSTER]
         self.grid = RosterGrid(pygame.Rect(420, 90, 440, 560), names, playable, paths)
         self.cards = (
             FighterCard(pygame.Rect(20, 90, 380, 560), S.P1_COLOR, "1", False),
@@ -93,19 +93,15 @@ class SelectScene(Scene):
     def _preview(self, player: int) -> Optional[Fighter]:
         entry = ROSTER[self._cursor[player]]
 
-        if not entry.playable:
+        if not entry.PLAYABLE:  
             return None
 
-        key = (player, entry.name)
+        key = (player, entry.NAME)
 
         if key not in self._previews:
             color = S.P1_COLOR if player == 0 else S.P2_COLOR
-            cls = entry.fighter_class
 
-            if cls is None:
-                return None
-
-            self._previews[key] = cls(
+            self._previews[key] = entry(
                 color,
                 self.game.controllers[player],
                 EventDispatcher(),
@@ -124,7 +120,7 @@ class SelectScene(Scene):
         for p, ctrl in enumerate(self.game.controllers):
             action = ctrl.action_for_event(event)
             if action == "attack":
-                if ROSTER[self._cursor[p]].playable:
+                if ROSTER[self._cursor[p]].PLAYABLE:
                     self._ready[p] = not self._ready[p]
             elif not self._ready[p]:
                 step = {"left": -1, "right": 1, "jump": -2, "block": 2}.get(action or "")
@@ -140,8 +136,8 @@ class SelectScene(Scene):
             self._countdown -= dt
             if self._countdown <= 0:
                 e1, e2 = ROSTER[self._cursor[0]], ROSTER[self._cursor[1]]
-                c1 = e1.fighter_class
-                c2 = e2.fighter_class
+                c1 = e1
+                c2 = e2
 
                 if c1 is not None and c2 is not None:
                     self.game.change_scene(BattleScene(self.game, c1, c2))
@@ -150,7 +146,7 @@ class SelectScene(Scene):
         draw_text(surface, "SELECT YOUR FIGHTER", 36, S.WHITE, (640, 12), "midtop", display=True)
         for p, card in enumerate(self.cards):
             entry = ROSTER[self._cursor[p]]
-            card.draw(surface, entry.name, entry.title, self._preview(p), self._ready[p], entry.portrait_path)
+            card.draw(surface, entry.NAME, entry.TITLE, self._preview(p), self._ready[p], entry.PORTRAIT_PATH)
         self.grid.draw(surface, (self._cursor[0], self._cursor[1]), (self._ready[0], self._ready[1]))
         hint = "P1: A/D/W/S move • F confirm      P2: arrows move • NUM 0 confirm      ESC back"
         draw_text(surface, hint, 10, S.GREY, (640, 710), "midbottom")

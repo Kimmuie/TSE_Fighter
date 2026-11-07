@@ -349,7 +349,7 @@ class RosterGrid:
             c = self.cell(i)
             pygame.draw.rect(surface, S.PANEL_LIGHT, c)
             pygame.draw.rect(surface, (60, 60, 70), c, 1)
-            img = load_image(self.portrait_paths[i], (c.w - 16, 60), name, S.WHITE if self.playable[i] else S.GREY)
+            img = load_image(self.portrait_paths[i], (c.w - 25, 65), name, S.WHITE if self.playable[i] else S.GREY)
             surface.blit(img, img.get_rect(center=(c.centerx, c.centery - 12)))
             col = S.WHITE if self.playable[i] else S.GREY
             draw_text(surface, name, 11, col, (c.centerx, c.centery + 28), "center")

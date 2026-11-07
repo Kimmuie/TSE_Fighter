@@ -114,6 +114,7 @@ class Power_Pellet(BaseSkill):
     COOLDOWN = 12.0
     ENERGY_COST = 20.0
     ICON = "skill/jack_iconskill_2.png"
+    BUFF_STATUS = "kinetic"
     BUFF_TIME = 3.5
     HEAL = 8.0
     SHEET_PATH = "imageFolder/jack_skill2.png"
@@ -122,9 +123,9 @@ class Power_Pellet(BaseSkill):
     def execute(self, caster: Fighter, target: Fighter) -> None:
         # ใช้ status "kinetic" เดิม เพื่อให้โบนัสของ Jack (attack_speed,
         # move_speed_multiplier, ดูดซับดาเมจตอนการ์ด) ทำงานต่อเนื่อง
-        caster.add_status("kinetic", self.BUFF_TIME)
+        caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
         caster.hp += self.HEAL
-        caster.stamina += self.ENERGY_COST
+        # caster.stamina += self.ENERGY_COST
         caster.state_machine.change(State.CAST, lock=1.2)
         self.play_pose(caster, "cast", 1.2)
         caster.burst(20, S.WHITE, 240)
