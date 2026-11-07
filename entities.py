@@ -740,7 +740,7 @@ class Oat(Fighter):
 
 class Jin(Fighter):
     NAME = "Jinn"
-    TITLE = "The Hole Destroyer"
+    TITLE = "The Hole Penetration"
     BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
     SHEET_PATH = "imageFolder/jinn_sheet.png"
     PORTRAIT_PATH="imageFolder/jinn_portrait.png"

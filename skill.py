@@ -104,7 +104,7 @@ class PacMan_Chomp(BaseSkill):
             knockback=(380, -260), stun=0.5,
             tags={"chomp"},
         )
-        self.play_pose(caster, "rush", self.DASH_TIME + 0.1)
+        self.play_pose(caster, "rush", self.SHEET_TIME)
         caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
 
 
@@ -125,9 +125,8 @@ class Power_Pellet(BaseSkill):
         # move_speed_multiplier, ดูดซับดาเมจตอนการ์ด) ทำงานต่อเนื่อง
         caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
         caster.hp += self.HEAL
-        # caster.stamina += self.ENERGY_COST
-        caster.state_machine.change(State.CAST, lock=1.2)
-        self.play_pose(caster, "cast", 1.2)
+        caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
+        self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(20, S.WHITE, 240)
 
 
@@ -192,8 +191,8 @@ class CriticalRoast(BaseSkill):
     SHEET_TIME = 0.3
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.3)
-        self.play_pose(caster, "throw", 0.3)
+        caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
+        self.play_pose(caster, "throw", self.SHEET_TIME)
 
         mult = caster.outgoing_damage_multiplier()
 
@@ -224,7 +223,7 @@ class ShutUp(BaseSkill):
     SHEET_TIME = 0.35
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.35)
+        caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         caster.vel.x = -850 * caster.facing
         # คลื่นเสียง: hitbox กว้างด้านหน้า ดาเมจต่ำแต่ผลักแรง ป้องกันไม่ได้
         caster.hitbox.arm(
@@ -234,7 +233,7 @@ class ShutUp(BaseSkill):
             knockback=(1100, -700), unblockable=True,
             stun=0.5, tags={"shout"},
         )
-        self.play_pose(caster, "cast", 0.35)
+        self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(22, S.WHITE, 340)
 
 
@@ -250,9 +249,9 @@ class EmotionalDamage(BaseSkill):
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         mult = caster.outgoing_damage_multiplier()
-        caster.state_machine.change(State.CAST, lock=0.45)
+        caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         caster.vel.x = 0
-        self.play_pose(caster, "cast", 0.45)
+        self.play_pose(caster, "cast", self.SHEET_TIME)
 
         # 1 คลื่นเสียงระยะประชิดหน้าตัวละคร
         caster.hitbox.arm(
@@ -296,19 +295,20 @@ class CPUSmash(BaseSkill):
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_1.png"
-    SHEET_PATH = "imageFolder/cpu_smash_sheet.png"   # sprite sheet 1 แถว 4 เฟรม (ไม่ใส่ = ใช้ท่าต่อย)
+    SHEET_PATH = "imageFolder/pao_skill1.png"
+    SHEET_TIME = 0.6
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.6)
+        caster.state_machine.change(State.CAST, lock=0.5)
         caster.vel.x = 0
         caster.hitbox.arm(
-            damage=(12 + 12 * caster.power) * caster.outgoing_damage_multiplier(),
-            width=170, height=170, offset_x=80, offset_y=120,
-            windup=0.25, active=0.2,
+            damage=(13 + 13 * caster.power) * caster.outgoing_damage_multiplier(),
+            width=65, height=170, offset_x=80, offset_y=120,
+            windup=0.25, active=0.3,
             knockback=(350, -500), unblockable=True,
-            stun=0.7, tags={"cpu_smash"},
+            stun=0.9, tags={"cpu_smash"},
         )
-        self.play_pose(caster, "cast", 0.6)
+        self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(20, S.WHITE, 320)
 
 class OverclockCharge(BaseSkill):
@@ -317,53 +317,84 @@ class OverclockCharge(BaseSkill):
     COOLDOWN = 8.0
     ENERGY_COST = 25.0
     ICON = "skill/pao_iconskill_2.png"
-    SHEET_PATH = None            # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
-    BUFF_STATUS = "kinetic"      # status ที่ให้โบนัสความเร็ว (Jack ใช้อยู่)
-    BUFF_TIME = 4.0
-    CHARGE_TIME = 0.4           # ช่วงชาร์จก่อนพุ่ง
-    DASH_TIME = 0.35
-    DASH_SPEED = 1000.0
+    SHEET_PATH = "imageFolder/pao_skill2.png"
+    CHARGE_TIME = 0.8
+    SHEET_TIME = CHARGE_TIME * 1.3
+    DASH_SPEED = 800.0
+    DASH_DISTANCE = 350.0
+
+    # derived from speed + distance, not set by hand
+    _DASH_DURATION = DASH_DISTANCE / DASH_SPEED
 
     def __init__(self) -> None:
         super().__init__()
         self._caster: Optional[Fighter] = None
         self._charge_left = 0.0
+        self._dashing = False
+        self._dash_start_x = 0.0
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        # จังหวะ 1: ชาร์จพลัง + บัฟ
+        self._dashing = False
         self._caster, self._charge_left = caster, self.CHARGE_TIME
-        caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
         caster.vel.x = 0
-        caster.state_machine.change(State.CAST, lock=self.CHARGE_TIME + self.DASH_TIME + 0.1)
-        self.play_pose(caster, "cast", self.CHARGE_TIME)
+        caster.state_machine.change(
+            State.CAST, lock=self.CHARGE_TIME + self._DASH_DURATION + 0.1
+        )
+        self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(24, S.WHITE, 300)
+
+    def _end(self) -> None:
+        c = self._caster
+        if c is not None and c.state_machine.state != State.HIT:
+            c.vel.x = 0
+        self._charge_left = 0.0
+        self._dashing = False
+        self._caster = None
 
     def update(self, dt: float) -> None:
         super().update(dt)
         c = self._caster
-        if c is None or self._charge_left <= 0:
+        if c is None:
             return
-        if c.is_ko or c.state_machine.state == State.HIT:   # ถูกขัดจังหวะ
-            self._charge_left = 0.0
-            return
-        self._charge_left -= dt
+
+        # if c.is_ko:
+        #     self._end()
+        #     return
+
+        # Phase 1: Charge (the only interruptible phase)
         if self._charge_left > 0:
+            if c.state_machine.state == State.HIT:
+                self._end()
+                return
+
+            self._charge_left -= dt
+            if self._charge_left <= 0:
+                self._charge_left = 0.0
+                self._dashing = True
+                self._dash_start_x = c.pos.x
+
+                c.vel.x = c.facing * self.DASH_SPEED
+                c.hitbox.arm(
+                    damage=(13 + 13 * c.power) * c.outgoing_damage_multiplier() * 1.3,
+                    width=120, height=140, offset_x=60, offset_y=105,
+                    windup=0.0, active=self._DASH_DURATION, knockback=(850, -500),
+                    stun=0.6, tags={"overclock"},
+                )
+                c.burst(20, S.P1_COLOR, 340)
             return
-        # จังหวะ 2: พุ่งชน
-        c.vel.x = c.facing * self.DASH_SPEED
-        c.hitbox.arm(
-            damage=(13 + 13 * c.power) * c.outgoing_damage_multiplier() * 1.3,
-            width=120, height=140, offset_x=60, offset_y=105,
-            windup=0.0, active=self.DASH_TIME,
-            knockback=(850, -500), stun=0.6,
-            tags={"overclock"},
-        )
-        self.play_pose(c, "rush", self.DASH_TIME)
-        c.burst(20, S.P1_COLOR, 340)
+
+        if self._dashing:
+            if c.state_machine.state == State.HIT:
+                self._end()
+                return
+
+            c.vel.x = c.facing * self.DASH_SPEED
+            if abs(c.pos.x - self._dash_start_x) >= self.DASH_DISTANCE:
+                self._end()
 
     def reset(self) -> None:
         super().reset()
-        self._charge_left = 0.0
+        self._end()
 
 class BlueScreen_Crash(BaseSkill):
     NAME = "Blue Screen Crash"
@@ -371,30 +402,67 @@ class BlueScreen_Crash(BaseSkill):
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_3.png"
-    SHEET_PATH = None              # ใส่ path ของ sprite sheet ถ้ามี (ไม่ใส่ = ใช้ท่าต่อย)
-    BLUE = (40, 90, 220)           # สีฟ้าแบบ Blue Screen
+    SHEET_PATH = "imageFolder/pao_skill3.png"
+    SHEET_TIME = 0.8
+    CHARGE_TIME = SHEET_TIME / 4
+    HIT_TIME = (SHEET_TIME / 4) * 3
+    DASH_SPEED = 350.0
+    BLUE = (67, 255, 255)
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._caster: Optional[Fighter] = None
+        self._charge_left = 0.0
+        self._hit_left = 0.0
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.state_machine.change(State.CAST, lock=0.7)
+        self._caster = caster
+        self._charge_left = self.CHARGE_TIME
+        self._hit_left = self.HIT_TIME
+
         caster.vel.x = 0
-        # คลื่นกระแทกวงกว้าง: hitbox กว้างครอบทั้งสองข้างของตัวละคร ต่ำติดพื้น
+        caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
+
         caster.hitbox.arm(
             damage=(13 + 13 * caster.power) * caster.outgoing_damage_multiplier(),
-            width=550, height=70, offset_x=0, offset_y=50,
-            windup=0.3, active=0.15,
-            knockback=(520, -420), unblockable=True,
+            width=550, height=30, offset_x=0, offset_y=50,
+            windup=0.6, active=0.15,
+            knockback=(520, -200), unblockable=True,
             stun=1.0, tags={"blue_screen"},
         )
-        self.play_pose(caster, "attack", 0.7)
-        caster.burst(14, self.BLUE, 220)
-        # คลื่นฝุ่นริมพื้นสองฝั่ง
-        w = caster.world
-        if w is not None:
-            for side in (-1, 1):
-                for i in range(1, 5):
-                    w.spawn_particles(caster.pos.x + side * i * 70, S.GROUND_Y,
-                                      self.BLUE, 6, 260)
 
+        self.play_pose(caster, "attack", self.SHEET_TIME)
+        caster.burst(14, self.BLUE, 220)
+
+    def update(self, dt: float) -> None:
+        super().update(dt)
+        c = self._caster
+        if c is None:
+            return
+
+        if self._charge_left > 0:
+            self._charge_left -= dt
+            if self._charge_left <= 0:
+                c.vel.x = c.facing * self.DASH_SPEED
+
+        
+
+        if self._hit_left > 0:
+            self._hit_left -= dt
+            if self._hit_left <= 0:
+                # คลื่นฝุ่นริมพื้นสองฝั่ง
+                w = c.world
+                if w is not None:
+                    for side in (-1, 1):
+                        for i in range(1, 5):
+                            w.spawn_particles( c.pos.x + side * i * 70, S.GROUND_Y, self.BLUE, 6, 260 )
+                self._caster = None
+
+    # def reset(self) -> None:
+    #     super().reset()
+    #     self._caster = None
+    #     self._charge_left = 0.0
+    #     self._hit_left = 0.0
 
 # ================================================================== Piya
 class PhantomDash(BaseSkill):
