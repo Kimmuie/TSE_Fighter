@@ -84,7 +84,7 @@ class BaseSkill(ABC):
 # ================================================================== Jack
 class PacMan_Chomp(BaseSkill):
     NAME = "Pac-Man Chomp"
-    DESCRIPTION = "พุ่งกัดศัตรูอย่างรวดเร็ว"
+    DESCRIPTION = "Dashes rapidly toward an enemy and bites them with a powerful attack, dealing instant damage."
     COOLDOWN = 5.0
     ENERGY_COST = 15.0
     ICON = "skill/jack_iconskill_1.png"
@@ -110,7 +110,7 @@ class PacMan_Chomp(BaseSkill):
 
 class Power_Pellet(BaseSkill):
     NAME = "Power Pellet"
-    DESCRIPTION = "กินเม็ดพลังเพื่อเพิ่มความเร็ว"
+    DESCRIPTION = "Consumes a Power Pellet to temporarily boost movement speed and increase combat mobility."
     COOLDOWN = 12.0
     ENERGY_COST = 20.0
     ICON = "skill/jack_iconskill_2.png"
@@ -131,8 +131,8 @@ class Power_Pellet(BaseSkill):
 
 
 class GhostFrenzy(BaseSkill):
-    NAME = "GHOST FRENZY"
-    DESCRIPTION = "Devastating multi-hit bionic combo executing unblockable finisher damage."
+    NAME = "Ghost Frenzy"
+    DESCRIPTION = "Enters a ghost-like state, dashing through enemies while delivering multiple consecutive attacks."
     COOLDOWN = 10.0
     ENERGY_COST = 50.0
     ICON = "skill/jack_iconskill_3.png"
@@ -182,8 +182,8 @@ class GhostFrenzy(BaseSkill):
 # ================================================================== Art
 
 class CriticalRoast(BaseSkill):
-    NAME = "CRITICAL ROAST"
-    DESCRIPTION = "ยิงคลื่นเสียงจากคำพูดโจมตีศัตรู"
+    NAME = "Critical Roast"
+    DESCRIPTION = "Fires a powerful sound wave through a devastating verbal roast, damaging enemies from distance."
     COOLDOWN = 5.0
     ENERGY_COST = 25.0
     ICON = "skill/art_iconskill_1.png"
@@ -215,7 +215,7 @@ class CriticalRoast(BaseSkill):
 
 class ShutUp(BaseSkill):
     NAME = "Shut Up!"
-    DESCRIPTION = "ตะโกนผลักศัตรูออกไป"
+    DESCRIPTION = "Release a thunderous shout that pushes nearby enemies away with tremendous force."
     COOLDOWN = 4.0
     ENERGY_COST = 20.0
     ICON = "skill/art_iconskill_2.png"
@@ -238,8 +238,8 @@ class ShutUp(BaseSkill):
 
 
 class EmotionalDamage(BaseSkill):
-    NAME = "EMOTIONAL DAMAGE"
-    DESCRIPTION = "ปล่อยคำพูดทำลายจิตใจพร้อมคลื่นเสียงรุนแรง"
+    NAME = "Emotional Damage"
+    DESCRIPTION = "Unleashes a devastating verbal assault combined with powerful sound waves, dealing heavy damage to enemies."
     COOLDOWN = 8.0
     ENERGY_COST = 35.0
     ICON = "skill/art_iconskill_3.png"
@@ -290,8 +290,8 @@ class EmotionalDamage(BaseSkill):
 
 # ================================================================== Pao
 class CPUSmash(BaseSkill):
-    NAME = "CPU SMASH"
-    DESCRIPTION = "ฟาด CPU ยักษ์ใส่ศัตรูอย่างแรง ทะลุการ์ดและกระแทกถอยหลัง"
+    NAME = "CPU Smash"
+    DESCRIPTION = "Summons a giant CPU and slams it down on an enemy, dealing massive physical damage."
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_1.png"
@@ -313,7 +313,7 @@ class CPUSmash(BaseSkill):
 
 class OverclockCharge(BaseSkill):
     NAME = "Overclock Charge"
-    DESCRIPTION = "เพิ่มพลังแล้วพุ่งชนศัตรู"
+    DESCRIPTION = "Overclocks his internal power to increase strength before charging forward and crushing enemies."
     COOLDOWN = 8.0
     ENERGY_COST = 25.0
     ICON = "skill/pao_iconskill_2.png"
@@ -398,7 +398,7 @@ class OverclockCharge(BaseSkill):
 
 class BlueScreen_Crash(BaseSkill):
     NAME = "Blue Screen Crash"
-    DESCRIPTION = "ทุบพื้นปล่อยคลื่นกระแทกวงกว้าง"
+    DESCRIPTION = "Smashes the ground with overwhelming force, releasing a massive shockwave that damages all nearby enemies."
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_3.png"
@@ -465,9 +465,9 @@ class BlueScreen_Crash(BaseSkill):
     #     self._hit_left = 0.0
 
 # ================================================================== Piya
-class PhantomDash(BaseSkill):
-    NAME = "PHANTOM DASH"
-    DESCRIPTION = "Phases through projectiles with brief invulnerability frames, emerging behind the foe."
+class SRS_Barrage(BaseSkill):
+    NAME = "SRS Barrage"
+    DESCRIPTION = "Throws a heavy SRS document at an enemy, pinning them in place. If the document hits its target, pressing Jump again instantly teleports Piya behind the enemy for a surprise attack."
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "skill/piya_iconskill_1.png"
@@ -488,7 +488,7 @@ class PhantomDash(BaseSkill):
 
 class SuckerPunch(BaseSkill):
     NAME = "Sucker Punch"
-    DESCRIPTION = "หายตัวหลบแล้วสวนกลับ"
+    DESCRIPTION = "Disappears just before an incoming attack, then reappears to counterattack with precision."
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
     ICON = "skill/piya_iconskill_2.png"
@@ -549,8 +549,8 @@ class SuckerPunch(BaseSkill):
         self._vanish_left = 0.0
 
 class ShadowVeil(BaseSkill):
-    NAME = "SHADOW VEIL"
-    DESCRIPTION = "Deploys a smoke screen that conceals hitboxes and guarantees critical counters."
+    NAME = "Shadow Veil"
+    DESCRIPTION = "Creates a cloud of smoke to conceal his movements, allowing him to strike enemies repeatedly from the shadows."
     COOLDOWN = 12.0
     ENERGY_COST = 35.0
     ICON = "skill/piya_iconskill_3.png"
@@ -565,9 +565,9 @@ class ShadowVeil(BaseSkill):
 
 
 # ================================================================== Oat
-class MusclePunch(BaseSkill):
-    NAME = "Muscle Punch"
-    DESCRIPTION = "ชกด้วยกล้ามแขนสุดทรงพลัง สร้างความเสียหายสูง"
+class DoubleMuscle_Rush(BaseSkill):
+    NAME = "Double Muscle Rush"
+    DESCRIPTION = "Flexes his massive muscles before performing two powerful forward charges, smashing into enemies with overwhelming strength."
     COOLDOWN = 7.0
     ENERGY_COST = 35.0
     ICON = "skill/oat_iconskill_1.png"
@@ -604,9 +604,9 @@ class ProteinShake(BaseSkill):
         self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(20, S.WHITE, 240)
 
-class BeastMode(BaseSkill):
-    NAME = "Beast Mode"
-    DESCRIPTION = "เกร็งกล้ามเนื้อเพิ่มพลัง และปล่อยหมัดคอมโบต่อเนื่อง"
+class Beastquake(BaseSkill):
+    NAME = "Beastquake"
+    DESCRIPTION = "Lifts a heavy barbell and slams it into the ground, creating a powerful shockwave that travels forward and damages enemies in its path."
     COOLDOWN = 12.0
     ENERGY_COST = 50.0
     ICON = "skill/oat_iconskill_3.png"
@@ -670,7 +670,7 @@ class BeastMode(BaseSkill):
 # ================================================================== Jin
 class BottleBomb(BaseSkill):
     NAME = "Bottle Bomb"
-    DESCRIPTION = "ปาขวดใส่ศัตรูจากระยะไกล สร้างความเสียหายและทำให้ชะงัก"
+    DESCRIPTION = "Throws a bottle at an enemy from a distance, dealing damage and briefly stunning the target."
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
     ICON = "skill/jinn_iconskill_1.png"
@@ -699,9 +699,9 @@ class BottleBomb(BaseSkill):
         self.play_pose(caster, "throw", flight)
         caster.burst(10, S.WHITE, 220)
 
-class MotorcycleRush(BaseSkill):
-    NAME = "Motorcycle Rush"
-    DESCRIPTION = "ขี่มอเตอร์ไซค์พุ่งชนศัตรูอย่างรวดเร็ว"
+class HellRiderRush(BaseSkill):
+    NAME = "Hell Rider Rush"
+    DESCRIPTION = "Mounts his motorcycle and charges forward at incredible speed, crashing into enemies along the way."
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "skill/jinn_iconskill_2.png"
@@ -722,9 +722,9 @@ class MotorcycleRush(BaseSkill):
         self.play_pose(caster, "rush", self.DASH_TIME + 0.1)
         caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
 
-class GansterDrift(BaseSkill):
-    NAME = "Ganster Drift"
-    DESCRIPTION = "ดริฟต์มอเตอร์ไซค์เป็นวงกว้าง สร้างความเสียหายรอบตัวและกระแทกศัตรูกระเด็น"
+class GangsterCharm(BaseSkill):
+    NAME = "Gangster Charm"
+    DESCRIPTION = "Performs Jin’s signature hair flip, releasing a mysterious aura that pulls nearby enemies toward him, inflicting a debuff and briefly stunning"
     COOLDOWN = 8.0
     ENERGY_COST = 35.0
     ICON = "skill/jinn_iconskill_3.png"

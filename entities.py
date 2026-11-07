@@ -718,8 +718,8 @@ class Piya(Fighter):
         super().__init__(*args, **kwargs)
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import PhantomDash, SuckerPunch, ShadowVeil
-        return [PhantomDash(), SuckerPunch(), ShadowVeil()]
+        from skill import SRS_Barrage, SuckerPunch, ShadowVeil
+        return [SRS_Barrage(), ShadowVeil(), SuckerPunch()]
 
 
 class Oat(Fighter):
@@ -734,8 +734,8 @@ class Oat(Fighter):
         super().__init__(*args, **kwargs)
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import MusclePunch, ProteinShake, BeastMode
-        return [MusclePunch(), ProteinShake(), BeastMode()]
+        from skill import DoubleMuscle_Rush, ProteinShake, Beastquake
+        return [DoubleMuscle_Rush(), ProteinShake(), Beastquake()]
 
 
 class Jin(Fighter):
@@ -750,13 +750,13 @@ class Jin(Fighter):
         super().__init__(*args, **kwargs)
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import BottleBomb, MotorcycleRush, GansterDrift
-        return [BottleBomb(), MotorcycleRush(), GansterDrift()]
+        from skill import BottleBomb, HellRiderRush, GangsterCharm
+        return [BottleBomb(), GangsterCharm(), HellRiderRush()]
 
 class Night(Fighter):
     NAME = "Night"
     TITLE = "Coming Soon!"
-    BASE_STATS = {"PWR": 90, "DEF": 65, "SPD": 100}
+    BASE_STATS = {"PWR": 100, "DEF": 100, "SPD": 100}
     PORTRAIT_PATH = "imageFolder/emptyImage.png"
     PLAYABLE = False
 
