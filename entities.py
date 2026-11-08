@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from combat import BattleWorld
     from skill import BaseSkill
 
-
 class GameObject(pygame.sprite.Sprite, ABC):
     def __init__(self, x: float, y: float, width: int, height: int, gravity: float = 0.0) -> None:
         super().__init__()
@@ -146,11 +145,7 @@ class Projectile(GameObject):
         pygame.draw.rect(surface, self.owner.color, self.rect)
 
 class SoundwaveProjectile(Projectile):
-    def __init__(self, owner: "Fighter", x: float, y: float,
-                 vx: float, vy: float, damage: float,
-                 sprite: str,
-                 lifespan: float = 1.2,
-                 size: tuple[int, int] = (120, 70)) -> None:
+    def __init__(self, owner: "Fighter", x: float, y: float, vx: float, vy: float, damage: float, sprite: str, lifespan: float = 1.2, size: tuple[int, int] = (120, 70)) -> None:
 
         super().__init__(owner, x, y, vx, vy, damage, lifespan, size)
 
@@ -173,16 +168,84 @@ class SoundwaveProjectile(Projectile):
             img = pygame.transform.flip(img, True, False)
         surface.blit(img, img.get_rect(center=self.rect.center))
 
-class KunaiProjectile(Projectile):
-    def __init__(self, *args: object, bleed_dps: float = 0.7, bleed_time: float = 4.0, **kw: object) -> None:
-        super().__init__(*args, **kw)  # type: ignore[arg-type]
-        self._bleed_dps = bleed_dps
-        self._bleed_time = bleed_time
-        self._img = load_image(os.path.join(S.IMAGE_DIR, "kunai.png"), (40, 16))
 
+class SRSDocumentProjectile(Projectile):
+    def __init__(self, owner: Fighter, skill: "SRS_Barrage", x: float, y: float,
+        direction: int, damage: float, sprite: str, lifespan: float = 1.2,
+        size: tuple[int, int] = (120, 70), vy: float = 0.0
+    ) -> None:
+
+        super().__init__( owner, x, y,
+            direction * 850.0, vy, damage,
+            lifespan, size
+        )
+
+        self._img = load_image( os.path.join(S.IMAGE_DIR, sprite), size )
+
+        self.skill = skill
+        self.direction = direction
+
+    def build_hit(self) -> HitInfo:
+        return HitInfo(
+            attacker=self.owner,
+            damage=self.damage,
+            knockback=pygame.Vector2(0, -20),
+            direction=self.direction,
+            stun=0.65
+        )
+
+    def on_hit(self, target: Fighter) -> None:
+        self.skill.mark_target(target)
+
+    def draw(self, surface: pygame.Surface) -> None:
+        img = self._img
+
+        if self.vel.x < 0:
+            img = pygame.transform.flip(img, True, False)
+
+        surface.blit(img, img.get_rect(center=self.rect.center))
+
+class QuakeProjectile(Projectile):
+    def __init__(self, owner: "Fighter", x: float, y: float, vx: float, vy: float, damage: float, sprite: str, lifespan: float = 1.2, size: tuple[int, int] = (120, 70)) -> None:
+
+        super().__init__(owner, x, y, vx, vy, damage, lifespan, size)
+
+        self._img = load_image(os.path.join(S.IMAGE_DIR, sprite), size)
+
+    def build_hit(self) -> HitInfo:
+        return HitInfo(
+            attacker=self.owner,
+            damage=self.damage,
+            knockback=pygame.Vector2(260, -50),
+            direction=1 if self.vel.x >= 0 else -1,
+            stun=0.3
+        )
     def on_hit(self, target: "Fighter") -> None:
-        if not target.is_blocking:
-            target.apply_bleed(self._bleed_dps, self._bleed_time, self.owner)
+        pass
+
+    def draw(self, surface: pygame.Surface) -> None:
+        img = self._img
+        if self.vel.x < 0:
+            img = pygame.transform.flip(img, True, False)
+        surface.blit(img, img.get_rect(center=self.rect.center))
+
+class SparkProjectile(Projectile):
+    def __init__(self, owner: "Fighter", x: float, y: float, vx: float, vy: float, damage: float, sprite: str, lifespan: float = 1.2, size: tuple[int, int] = (120, 70)) -> None:
+
+        super().__init__(owner, x, y, vx, vy, damage, lifespan, size)
+
+        self._img = load_image(os.path.join(S.IMAGE_DIR, sprite), size)
+
+    def build_hit(self) -> HitInfo:
+        return HitInfo(
+            attacker=self.owner,
+            damage=self.damage,
+            knockback=pygame.Vector2(-1200, -500),
+            direction=1 if self.vel.x >= 0 else -1,
+            stun=1.0
+        )
+    def on_hit(self, target: "Fighter") -> None:
+        pass
 
     def draw(self, surface: pygame.Surface) -> None:
         img = self._img
@@ -209,6 +272,15 @@ class Fighter(GameObject, BaseFighter):
     BASE_STATS: dict[str, int] = {"PWR": 50, "DEF": 50, "SPD": 50}
     SIZE = (70, 170)
     SHEET_PATH = "imageFolder/emptyImage.png"
+
+    # สีวงแหวนใต้เท้าของแต่ละสถานะ (สถานะที่ไม่อยู่ในรายการใช้สีเทา)
+    STATUS_COLORS: dict[str, tuple[int, int, int]] = {
+        "marked":       S.RED,
+        "veiled":       S.WHITE,
+        "kinetic":      S.BLUE, 
+        "creatine":      S.GREY  
+    }
+    DEFAULT_STATUS_COLOR = (190, 190, 190)
 
     def __init__(self, color: tuple[int, int, int], controller: InputController,
                  dispatcher: EventDispatcher, tag: str = "1P", x: float = 300.0, facing: int = 1) -> None:
@@ -251,16 +323,7 @@ class Fighter(GameObject, BaseFighter):
 
 
     def _slice_sheet(self) -> dict[str, list[pygame.Surface]]:
-        poses = [
-            "idle",
-            "walk",
-            "attack",
-            "jumpattack",
-            "guard",
-            "jump",
-            "hit",
-            "ko"
-        ]
+        poses = [ "idle", "walk", "attack", "jumpattack", "guard", "jump", "hit", "ko" ]
 
         frames = {}
 
@@ -271,12 +334,7 @@ class Fighter(GameObject, BaseFighter):
             frames[pose] = []
 
             for col in range(4):
-                rect = pygame.Rect(
-                    col * fw,
-                    row * fh,
-                    fw,
-                    fh
-                )
+                rect = pygame.Rect(  col * fw, row * fh, fw, fh )
 
                 frames[pose].append(
                     self._sheet.subsurface(rect).copy()
@@ -365,6 +423,9 @@ class Fighter(GameObject, BaseFighter):
     def has_status(self, name: str) -> bool:
         return self._status.get(name, 0.0) > 0.0
 
+    def remove_status(self, name: str) -> None:
+        self._status.pop(name, None)
+
     def apply_bleed(self, dps: float, duration: float, source: "Fighter") -> None:
         self._bleeds.append([duration, dps, source])
 
@@ -406,6 +467,13 @@ class Fighter(GameObject, BaseFighter):
             self.perform(action)
 
     def perform(self, action: str) -> None:
+            
+        if action == "jump":
+            # Give skills a chance to consume the Jump input.
+            for skill in self.skills:
+                if skill.on_jump(self):
+                    return
+            
         if not self.state_machine.can_act:
             return
         if action == "jump" and self.on_ground:
@@ -574,6 +642,13 @@ class Fighter(GameObject, BaseFighter):
         shadow.center = (self.rect.centerx, S.GROUND_Y - 17)
         pygame.draw.ellipse(surface, (31, 31, 31), shadow)
 
+        t = pygame.time.get_ticks() / 1000.0
+        pulse = int((math.sin(t * 10) + 1) * 1.5)
+        active = [name for name, left in self._status.items() if left > 0.0]
+        for i, name in enumerate(active):
+            ring = shadow.inflate(18 + i * 14 + pulse * 2, 8 + i * 7 + pulse)
+            color = self.STATUS_COLORS.get(name, self.DEFAULT_STATUS_COLOR)
+            pygame.draw.ellipse(surface, color, ring, 2)
         
         if self.is_ko:
             pose_key = "ko"
@@ -721,6 +796,12 @@ class Piya(Fighter):
         from skill import SRS_Barrage, SuckerPunch, ShadowVeil
         return [SRS_Barrage(), ShadowVeil(), SuckerPunch()]
 
+    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+        if self.has_status("veiled"):
+            self.burst(6, S.RED, 200)
+            return 0
+        return damage
+
 
 class Oat(Fighter):
     NAME = "Oat"
@@ -734,8 +815,20 @@ class Oat(Fighter):
         super().__init__(*args, **kwargs)
 
     def create_skills(self) -> list["BaseSkill"]:
-        from skill import DoubleMuscle_Rush, ProteinShake, Beastquake
-        return [DoubleMuscle_Rush(), ProteinShake(), Beastquake()]
+        from skill import DoubleMuscle_Rush, CreatineShake, Beastquake
+        return [DoubleMuscle_Rush(), CreatineShake(), Beastquake()]
+    
+    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+        if blocked and self.has_status("creatine"):
+            self.burst(6, S.WHITE, 200)
+            return 0.1
+        elif self.has_status("creatine"):
+            self.burst(6, S.RED, 200)
+            return damage * 0.75
+        return damage
+
+    def outgoing_damage_multiplier(self) -> float:
+        return 1.75 if self.has_status("creatine") else 1.0
 
 
 class Jin(Fighter):
