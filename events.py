@@ -19,10 +19,6 @@ class EventDispatcher:
     def subscribe(self, event_name: str, listener: Listener) -> None:
         self._listeners[event_name].append(listener)
 
-    def unsubscribe(self, event_name: str, listener: Listener) -> None:
-        if listener in self._listeners[event_name]:
-            self._listeners[event_name].remove(listener)
-
     def emit(self, event_name: str, **payload: Any) -> None:
         for listener in list(self._listeners[event_name]):
             listener(**payload)

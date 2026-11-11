@@ -23,11 +23,11 @@ class State(Enum):
 
 
 class StateMachine:
+    _AUTO_RECOVER = (State.ATTACK, State.CAST, State.HIT)
+
     def __init__(self) -> None:
         self._state = State.IDLE
         self._lock = 0.0
-        self.elapsed = 0.0
-        self._auto_recover = (State.ATTACK, State.CAST, State.HIT)
 
     @property
     def state(self) -> State:
@@ -40,19 +40,16 @@ class StateMachine:
     def change(self, new_state: State, lock: float = 0.0) -> None:
         self._state = new_state
         self._lock = max(0.0, lock)
-        self.elapsed = 0.0
 
     def locomote(self, new_state: State) -> None:
         if self._lock <= 0.0 and self._state in (State.IDLE, State.WALK, State.JUMP):
             self._state = new_state
 
     def update(self, dt: float) -> None:
-        self.elapsed += dt
         if self._lock > 0.0:
             self._lock -= dt
-            if self._lock <= 0.0 and self._state in self._auto_recover:
+            if self._lock <= 0.0 and self._state in self._AUTO_RECOVER:
                 self._state = State.IDLE
-                self.elapsed = 0.0
 
 
 class Hitbox:
@@ -114,20 +111,9 @@ class Hitbox:
     def build_hit(self, owner: "Fighter") -> HitInfo:
         assert self._p is not None
         p = self._p
-
-        # Critical hit when attacking in midair
-        critical = not owner.on_ground
-
-        damage = p["damage"] * owner.outgoing_damage_multiplier()
-
-        if critical:
-            damage *= 1.5
-
-        tags = set(p["tags"])
-
-        if critical:
-            tags.add("critical")
-
+        critical = not owner.on_ground  # โจมตีกลางอากาศ = Critical (x1.5)
+        damage = p["damage"] * owner.outgoing_damage_multiplier() * (1.5 if critical else 1.0)
+        tags = p["tags"] | {"critical"} if critical else p["tags"]
         return HitInfo(
             attacker=owner,
             damage=damage,
@@ -135,7 +121,7 @@ class Hitbox:
             direction=owner.facing,
             unblockable=p["unblockable"],
             stun=p["stun"],
-            tags=frozenset(tags),
+            tags=tags,
         )
 
 
@@ -160,21 +146,21 @@ class InputController:
 
 
 def make_player_one_controller() -> InputController:
-    km = {
+    keymap = {
         "left": (pygame.K_a,), "right": (pygame.K_d,), "jump": (pygame.K_w,),
         "block": (pygame.K_s,), "attack": (pygame.K_v,),
         "skill1": (pygame.K_f,), "skill2": (pygame.K_g,), "skill3": (pygame.K_h,),
     }
-    lb = {"attack": "V", "skill1": "F", "skill2": "G", "skill3": "H"}
-    return InputController(km, lb)
+    labels = {"skill1": "F", "skill2": "G", "skill3": "H"}
+    return InputController(keymap, labels)
 
 
 def make_player_two_controller() -> InputController:
-    km = {
+    keymap = {
         "left": (pygame.K_LEFT,), "right": (pygame.K_RIGHT,), "jump": (pygame.K_UP,),
         "block": (pygame.K_DOWN,), "attack": (pygame.K_RSHIFT, pygame.K_KP0),
         "skill1": (pygame.K_KP1, pygame.K_1), "skill2": (pygame.K_KP2, pygame.K_2),
         "skill3": (pygame.K_KP3, pygame.K_3),
     }
-    lb = {"attack": "NUM 0", "skill1": "NUM 1", "skill2": "NUM 2", "skill3": "NUM 3"}
-    return InputController(km, lb)
+    labels = {"skill1": "NUM 1", "skill2": "NUM 2", "skill3": "NUM 3"}
+    return InputController(keymap, labels)

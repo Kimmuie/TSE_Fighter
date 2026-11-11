@@ -20,6 +20,7 @@ WHITE = (255, 255, 255)
 GREY = (130, 130, 140)
 GOLD = (255, 214, 0)
 BLUE = (137, 207, 240)
+PURPLE = (170, 51, 106)
 
 # ---------- สนามต่อสู้ ----------
 ARENA = pygame.Rect(16, 118, 1248, 486)
@@ -30,6 +31,7 @@ GRAVITY = 2600.0
 MAX_HP = 100.0
 MAX_ENERGY = 100.0
 MAX_STAMINA = 100.0
+START_ENERGY = 50.0
 ENERGY_REGEN = 7.0
 STAMINA_REGEN = 22.0
 BLOCK_DRAIN = 12.0
@@ -39,4 +41,4 @@ ROUND_TIME = 90
 ROUNDS_TO_WIN = 2
 
 # ---------- พาธรูป ----------
-IMAGE_DIR = "imageFolder"
+IMAGE_DIR = "assets"

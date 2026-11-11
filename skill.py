@@ -1,8 +1,6 @@
-"""skill.py — สกิลทั้งหมดของ Kai และ Nyx"""
+"""skill.py — สกิลทั้งหมดของตัวละครในเกม"""
 from __future__ import annotations
 
-import math
-import random
 from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
@@ -10,7 +8,8 @@ import pygame
 
 import settings as S
 from component import State
-from entities import Fighter, FloatingText, SmokeScreen, SoundwaveProjectile, SRSDocumentProjectile, QuakeProjectile, SparkProjectile
+from entities import (Fighter, FloatingText, QuakeProjectile, SmokeScreen, SoundwaveProjectile,
+                      SparkProjectile, SRSDocumentProjectile)
 from ui import load_image
 
 
@@ -20,24 +19,22 @@ class BaseSkill(ABC):
     COOLDOWN = 3.0
     ENERGY_COST = 10.0
     ICON = "emptyImage.png"
-    SHEET_PATH: Optional[str] = None 
+    SHEET_PATH: Optional[str] = None
     SHEET_TIME: Optional[float] = None
     SHEET_COLUMNS = 4
 
     def __init__(self) -> None:
         self._cooldown_left = 0.0
-        self.action = ""
         self.key_label = ""
         self._frames: Optional[list[pygame.Surface]] = None
         self._timers: list[dict] = []
 
-    def bind(self, action: str, key_label: str) -> None:
-        self.action, self.key_label = action, key_label
+    def bind(self, key_label: str) -> None:
+        self.key_label = key_label
 
     def load_sprite(self) -> None:
         """โหลด sprite sheet ของสกิล (เรียกจาก Fighter หลังสร้างสกิล)"""
         if not self.SHEET_PATH:
-            self._frames = None
             return
         sheet = load_image(self.SHEET_PATH)
         fw = sheet.get_width() // self.SHEET_COLUMNS
@@ -46,7 +43,7 @@ class BaseSkill(ABC):
             sheet.subsurface(pygame.Rect(i * fw, 0, fw, fh)).copy()
             for i in range(self.SHEET_COLUMNS)
         ]
-    
+
     def play_pose(self, caster: Fighter, pose: str, length: float) -> None:
         if self._frames and self.SHEET_TIME:
             length = self.SHEET_TIME
@@ -58,12 +55,8 @@ class BaseSkill(ABC):
         """เรียก callback หนึ่งครั้งหลังผ่านไป `delay` วินาที (นับใน update)"""
         self._timers.append({"left": delay, "cb": callback, "key": key})
 
-    def cancel_timers(self, key: Optional[str] = None) -> None:
-        """ยกเลิก timer ตาม key (ไม่ใส่ key = ยกเลิกทั้งหมด)"""
-        if key is None:
-            self._timers.clear()
-        else:
-            self._timers = [t for t in self._timers if t["key"] != key]
+    def cancel_timers(self, key: str) -> None:
+        self._timers = [t for t in self._timers if t["key"] != key]
 
     def _tick_timers(self, dt: float) -> None:
         if not self._timers:
@@ -76,6 +69,7 @@ class BaseSkill(ABC):
         for t in due:
             t["cb"]()
 
+    # ------------------------------------------------------------ casting
     @property
     def cooldown_left(self) -> float:
         return self._cooldown_left
@@ -105,6 +99,7 @@ class BaseSkill(ABC):
         self._timers.clear()
 
     def on_jump(self, caster: Fighter) -> bool:
+        """Hook — คืน True ถ้าสกิลดักรับปุ่ม Jump ไว้ (ไม่กระโดดตามปกติ)"""
         return False
 
     @abstractmethod
@@ -119,7 +114,7 @@ class PacMan_Chomp(BaseSkill):
     COOLDOWN = 5.0
     ENERGY_COST = 15.0
     ICON = "skill/jack_iconskill_1.png"
-    SHEET_PATH = "imageFolder/jack_skill1.png"
+    SHEET_PATH = "assets/jack_skill1.png"
     SHEET_TIME = 0.4
     DASH_SPEED = 1200.0
     DASH_DISTANCE = 300.0
@@ -137,7 +132,7 @@ class PacMan_Chomp(BaseSkill):
             tags={"chomp"},
         )
         self.play_pose(caster, "rush", self.SHEET_TIME)
-        caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
+        caster.burst(14, S.P1_COLOR, 260)
 
 
 class Power_Pellet(BaseSkill):
@@ -149,7 +144,7 @@ class Power_Pellet(BaseSkill):
     BUFF_STATUS = "kinetic"
     BUFF_TIME = 3.5
     HEAL = 8.0
-    SHEET_PATH = "imageFolder/jack_skill2.png"
+    SHEET_PATH = "assets/jack_skill2.png"
     SHEET_TIME = 1.2
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
@@ -202,39 +197,35 @@ class GhostFrenzy(BaseSkill):
 
 
 # ================================================================== Art
-
 class CriticalRoast(BaseSkill):
     NAME = "Critical Roast"
     DESCRIPTION = "Fires a powerful sound wave through a devastating verbal roast, damaging enemies from distance."
     COOLDOWN = 5.0
     ENERGY_COST = 25.0
     ICON = "skill/art_iconskill_1.png"
-    SHEET_PATH = "imageFolder/art_skill1.png"
+    SHEET_PATH = "assets/art_skill1.png"
     SHEET_TIME = 0.3
     WAVE_SPEED = 500
+    PROJ_KNOCKBACK = (260, -50)
+    PROJ_STUN = 0.3
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "throw", self.SHEET_TIME)
-
+        if caster.world is None:
+            return
         mult = caster.outgoing_damage_multiplier()
-
-        # Fire 3 soundwaves at different angles
+        # ยิงคลื่นเสียง 3 ลูกคนละมุม
         for vy in (-200.0, 0.0, 200.0):
-            soundwave = SoundwaveProjectile(
-                caster,
-                caster.rect.centerx,
-                caster.rect.centery,
-                vx=self.WAVE_SPEED * caster.facing,
-                vy=vy,
-                damage=4.5 * mult,
-                sprite="sound1_projectile.png",
-                lifespan=0.5,
-                size=(120, 70)
-            )
+            caster.world.spawn_projectile(SoundwaveProjectile(
+                caster, caster.rect.centerx, caster.rect.centery,
+                vx=self.WAVE_SPEED * caster.facing, vy=vy,
+                damage=4.5 * mult, sprite="sound1_projectile.png",
+                lifespan=0.5, size=(120, 70),
+                knockback=self.PROJ_KNOCKBACK,
+                stun=self.PROJ_STUN,
+            ))
 
-            if caster.world is not None:
-                caster.world.spawn_projectile(soundwave)
 
 class ShutUp(BaseSkill):
     NAME = "Shut Up!"
@@ -242,7 +233,7 @@ class ShutUp(BaseSkill):
     COOLDOWN = 4.0
     ENERGY_COST = 20.0
     ICON = "skill/art_iconskill_2.png"
-    SHEET_PATH = "imageFolder/art_skill2.png"
+    SHEET_PATH = "assets/art_skill2.png"
     SHEET_TIME = 0.35
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
@@ -267,8 +258,10 @@ class EmotionalDamage(BaseSkill):
     ENERGY_COST = 35.0
     ICON = "skill/art_iconskill_3.png"
     WAVE_SPEED = 700
-    SHEET_PATH = "imageFolder/art_skill3.png"
+    SHEET_PATH = "assets/art_skill3.png"
     SHEET_TIME = 0.45
+    PROJ_KNOCKBACK = (260, -50)
+    PROJ_STUN = 0.3
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         mult = caster.outgoing_damage_multiplier()
@@ -276,7 +269,7 @@ class EmotionalDamage(BaseSkill):
         caster.vel.x = 0
         self.play_pose(caster, "cast", self.SHEET_TIME)
 
-        # 1 คลื่นเสียงระยะประชิดหน้าตัวละคร
+        # 1) คลื่นเสียงระยะประชิดหน้าตัวละคร
         caster.hitbox.arm(
             damage=(5 + 5 * caster.power) * mult,
             width=120, height=60, offset_x=70, offset_y=70,
@@ -285,29 +278,19 @@ class EmotionalDamage(BaseSkill):
             stun=0.5, tags={"shout"},
         )
 
-        # 2 คลื่นเสียงลูกใหญ่พุ่งออกไปไกล
-        soundwave = SoundwaveProjectile(
-            caster,
-            caster.rect.centerx,
-            caster.rect.centery + 20,
-            vx=self.WAVE_SPEED * caster.facing,
-            vy=0,
-            damage=22.5 * mult,
-            sprite="sound2_projectile.png",
-            lifespan=1.5,
-            size=(120, 60)
-        )
-
+        # 2) คลื่นเสียงลูกใหญ่พุ่งออกไปไกล + ข้อความลอยเหนือหัว
         if caster.world is not None:
-            caster.world.spawn_projectile(soundwave)
-        
-        #caster.world.spawn_projectile(wave)
-        # ข้อความคำพูดลอยขึ้นเหนือหัว
-        caster.world.spawn_effect(
-            FloatingText("EMOTIONAL DAMAGE!", caster.rect.centerx,
-                            caster.rect.top - 20, S.WHITE, 1.2)
-        )
-
+            caster.world.spawn_projectile(SoundwaveProjectile(
+                caster, caster.rect.centerx, caster.rect.centery + 20,
+                vx=self.WAVE_SPEED * caster.facing, vy=0,
+                damage=22.5 * mult, sprite="sound2_projectile.png",
+                lifespan=1.5, size=(120, 60),
+                knockback=self.PROJ_KNOCKBACK,
+                stun=self.PROJ_STUN,
+            ))
+            caster.world.spawn_effect(
+                FloatingText("EMOTIONAL DAMAGE!", caster.rect.centerx, caster.rect.top - 20, S.WHITE, 1.2)
+            )
         caster.burst(30, S.WHITE, 380)
 
 
@@ -318,7 +301,7 @@ class CPUSmash(BaseSkill):
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_1.png"
-    SHEET_PATH = "imageFolder/pao_skill1.png"
+    SHEET_PATH = "assets/pao_skill1.png"
     SHEET_TIME = 0.6
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
@@ -334,13 +317,14 @@ class CPUSmash(BaseSkill):
         self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(20, S.WHITE, 320)
 
+
 class OverclockCharge(BaseSkill):
     NAME = "Overclock Charge"
     DESCRIPTION = "Overclocks his internal power to increase strength before charging forward and crushing enemies."
     COOLDOWN = 8.0
     ENERGY_COST = 25.0
     ICON = "skill/pao_iconskill_2.png"
-    SHEET_PATH = "imageFolder/pao_skill2.png"
+    SHEET_PATH = "assets/pao_skill2.png"
     CHARGE_TIME = 0.8
     SHEET_TIME = CHARGE_TIME * 1.3
     DASH_SPEED = 800.0
@@ -373,7 +357,6 @@ class OverclockCharge(BaseSkill):
         self._charging = False
         self._dashing = True
         self._dash_start_x = c.pos.x
-
         c.vel.x = c.facing * self.DASH_SPEED
         c.hitbox.arm(
             damage=(13 + 13 * c.power) * c.outgoing_damage_multiplier() * 1.3,
@@ -397,12 +380,10 @@ class OverclockCharge(BaseSkill):
         c = self._caster
         if c is None:
             return
-
         # ถูกตีระหว่าง charge หรือพุ่ง = ยกเลิก
         if c.state_machine.state == State.HIT:
             self._end()
             return
-
         # Phase 2: Dash (เช็คระยะทางทุกเฟรม)
         if self._dashing:
             c.vel.x = c.facing * self.DASH_SPEED
@@ -413,13 +394,14 @@ class OverclockCharge(BaseSkill):
         super().reset()
         self._end()
 
+
 class BlueScreen_Crash(BaseSkill):
     NAME = "Blue Screen Crash"
     DESCRIPTION = "Smashes the ground with overwhelming force, releasing a massive shockwave that damages all nearby enemies."
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
     ICON = "skill/pao_iconskill_3.png"
-    SHEET_PATH = "imageFolder/pao_skill3.png"
+    SHEET_PATH = "assets/pao_skill3.png"
     SHEET_TIME = 0.8
     CHARGE_TIME = SHEET_TIME / 4
     HIT_TIME = (SHEET_TIME / 4) * 3
@@ -434,7 +416,6 @@ class BlueScreen_Crash(BaseSkill):
         self._caster = caster
         caster.vel.x = 0
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
-
         caster.hitbox.arm(
             damage=(13 + 13 * caster.power) * caster.outgoing_damage_multiplier(),
             width=550, height=30, offset_x=0, offset_y=50,
@@ -442,18 +423,14 @@ class BlueScreen_Crash(BaseSkill):
             knockback=(520, -200), unblockable=True,
             stun=1.0, tags={"blue_screen"},
         )
-
         self.play_pose(caster, "attack", self.SHEET_TIME)
         caster.burst(14, self.BLUE, 220)
-
         self.start_timer(self.CHARGE_TIME, self._dash)
         self.start_timer(self.HIT_TIME, self._shockwave)
 
     def _dash(self) -> None:
-        c = self._caster
-        if c is None:
-            return
-        c.vel.x = c.facing * self.DASH_SPEED
+        if self._caster is not None:
+            self._caster.vel.x = self._caster.facing * self.DASH_SPEED
 
     def _shockwave(self) -> None:
         # คลื่นฝุ่นริมพื้นสองฝั่ง
@@ -464,21 +441,22 @@ class BlueScreen_Crash(BaseSkill):
             for i in range(1, 5):
                 c.world.spawn_particles(c.pos.x + side * i * 70, S.GROUND_Y, self.BLUE, 6, 260)
 
-# ================================================================== Piya
 
+# ================================================================== Piya
 class SRS_Barrage(BaseSkill):
     NAME = "SRS Barrage"
     DESCRIPTION = "Throws three SRS documents in a spread. If one hits, Piya becomes Marked for 5 seconds. Press Jump while Marked to teleport behind the enemy."
     COOLDOWN = 3.0
     ENERGY_COST = 15.0
     ICON = "skill/piya_iconskill_1.png"
-
-    SHEET_PATH = "imageFolder/piya_skill1.png"
+    SHEET_PATH = "assets/piya_skill1.png"
     SHEET_TIME = 0.3
-    DOCUMENT_SPEED = 100.0
+    SPAWN_OFFSET = 100.0
     DOCUMENT_DAMAGE = 4.0
     BUFF_STATUS = "marked"
     BUFF_TIME = 5.0
+    PROJ_KNOCKBACK = (0, -20)
+    PROJ_STUN = 0.65
 
     def __init__(self) -> None:
         super().__init__()
@@ -493,21 +471,19 @@ class SRS_Barrage(BaseSkill):
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "throw", self.SHEET_TIME)
 
-        mult = caster.outgoing_damage_multiplier()
-        document = SRSDocumentProjectile(
-            caster,
-            self,
-            caster.rect.centerx + direction * self.DOCUMENT_SPEED,
-            caster.rect.centery - 35,
-            direction,
-            damage=self.DOCUMENT_DAMAGE * mult,
-            sprite="document_projectile.png",
-            size=(120, 60),
-            lifespan=1.5,
-        )
-
         if caster.world is not None:
-            caster.world.spawn_projectile(document)
+            caster.world.spawn_projectile(SRSDocumentProjectile(
+                caster, self,
+                caster.rect.centerx + direction * self.SPAWN_OFFSET,
+                caster.rect.centery - 35,
+                direction,
+                damage=self.DOCUMENT_DAMAGE * caster.outgoing_damage_multiplier(),
+                sprite="document_projectile.png",
+                size=(120, 60),
+                lifespan=1.5,
+                knockback=self.PROJ_KNOCKBACK,
+                stun=self.PROJ_STUN,
+            ))
 
     def mark_target(self, target: Fighter) -> None:
         caster = self._caster
@@ -517,44 +493,32 @@ class SRS_Barrage(BaseSkill):
         self._pending_target = target
         caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
         if first_hit:
-            self._aura_timer = 0.0
             caster.burst(18, S.GOLD, 260)
 
     def update(self, dt: float) -> None:
         super().update(dt)
-
-        caster = self._caster
-        if caster is None:
-            return
-        if not caster.has_status(self.BUFF_STATUS):
+        if self._caster is not None and not self._caster.has_status(self.BUFF_STATUS):
             self._pending_target = None
-            return
 
     def on_jump(self, caster: Fighter) -> bool:
         if not caster.has_status(self.BUFF_STATUS):
             return False
-        
+
         target = self._pending_target
         caster.remove_status(self.BUFF_STATUS)
         self._pending_target = None
-
         if target is None or target.is_ko:
             return False
+
         old = caster.rect.center
         new_x = target.pos.x - target.facing * 85
-        new_x = max(S.ARENA.left + 45, min(S.ARENA.right - 45, new_x))
-
-        caster.set_x(new_x)
+        caster.set_x(max(S.ARENA.left + 45, min(S.ARENA.right - 45, new_x)))
         caster.facing = target.facing
         caster.vel.update(0, 0)
 
-        # Teleport effects.
         caster.burst(22, S.GOLD, 320)
-
         if caster.world is not None:
-            caster.world.spawn_particles(
-                old[0], old[1], S.GOLD, 20, 300
-            )
+            caster.world.spawn_particles(old[0], old[1], S.GOLD, 20, 300)
         return True
 
     def reset(self) -> None:
@@ -581,17 +545,18 @@ class ShadowVeil(BaseSkill):
         if caster.world is not None:
             caster.world.spawn_effect(SmokeScreen(caster))
 
+
 class SuckerPunch(BaseSkill):
     NAME = "Sucker Punch"
     DESCRIPTION = "Disappears just before an incoming attack, then reappears to counterattack with precision."
     COOLDOWN = 8.0
     ENERGY_COST = 30.0
     ICON = "skill/piya_iconskill_3.png"
-    SHEET_PATH = "imageFolder/piya_skill3.png"
+    SHEET_PATH = "assets/piya_skill3.png"
     SHEET_TIME = 0.8
     BUFF_STATUS = "veiled"
-    BUFF_TIME = 0.4           
-    COUNTER_BONUS = 1.5          
+    BUFF_TIME = 0.4
+    COUNTER_BONUS = 1.5
 
     def __init__(self) -> None:
         super().__init__()
@@ -615,14 +580,12 @@ class SuckerPunch(BaseSkill):
         old = c.rect.center
         side = 1 if t.pos.x >= c.pos.x else -1
         new_x = t.pos.x + side * 95
-        new_x = max(S.ARENA.left + 50, min(S.ARENA.right - 50, new_x))
-        c.set_x(new_x)
+        c.set_x(max(S.ARENA.left + 50, min(S.ARENA.right - 50, new_x)))
         c.facing = -side
         c.vel.x = 0
         counter = t.state_machine.state in (State.ATTACK, State.CAST)
-        mult = self.COUNTER_BONUS if counter else 1.0
         c.hitbox.arm(
-            damage=(8 + 8 * c.power) * c.outgoing_damage_multiplier() * mult,
+            damage=(8 + 8 * c.power) * c.outgoing_damage_multiplier() * (self.COUNTER_BONUS if counter else 1.0),
             width=100, height=120, offset_x=55, offset_y=105,
             windup=0.05, active=0.15,
             knockback=(450, -300), stun=0.7, unblockable=True,
@@ -633,6 +596,7 @@ class SuckerPunch(BaseSkill):
             c.world.spawn_particles(old[0], old[1], S.P2_COLOR, 18, 300)
         c.burst(18, S.WHITE if counter else S.P2_COLOR, 320)
 
+
 # ================================================================== Oat
 class DoubleMuscle_Rush(BaseSkill):
     NAME = "Double Muscle Rush"
@@ -640,7 +604,7 @@ class DoubleMuscle_Rush(BaseSkill):
     COOLDOWN = 7.0
     ENERGY_COST = 35.0
     ICON = "skill/oat_iconskill_1.png"
-    SHEET_PATH = "imageFolder/oat_skill1.png"
+    SHEET_PATH = "assets/oat_skill1.png"
     SHEET_TIME = 2.3
     HITS = 2
     HIT_DISTANCE = 500.0
@@ -660,11 +624,11 @@ class DoubleMuscle_Rush(BaseSkill):
 
     def _hit(self) -> None:
         c = self._caster
-        if c is None or c.is_ko or c.state_machine.state == State.HIT:
+        if c is None or c.is_ko:
             return
         self._remaining -= 1
         final = self._remaining == 0
-        dmg = (2.5 + 2.5 * c.power) * (1.8 if final else 1.0)
+        dmg = (3.25 + 3.25 * c.power) * (2.0 if final else 1.0)
         c.hitbox.arm(
             damage=dmg, width=100, height=110, offset_x=60, offset_y=100,
             windup=0.0, active=0.12,
@@ -676,20 +640,22 @@ class DoubleMuscle_Rush(BaseSkill):
         if not final:
             self.start_timer(self.INTERVAL, self._hit, key="rush")
 
+
 class CreatineShake(BaseSkill):
     NAME = "Creatine Shake"
     DESCRIPTION = "Drinks a creatine shake to restore HP and temporarily increase attack and defense."
-    COOLDOWN = 10.0
-    ENERGY_COST = 35.0
+    COOLDOWN = 13.0
+    ENERGY_COST = 40.0
     ICON = "skill/oat_iconskill_2.png"
+    BUFF_STATUS = "creatine"
     BUFF_TIME = 6.0
-    HEAL = 16.0
-    SHEET_PATH = "imageFolder/oat_skill2.png"
+    HEAL = 14.0
+    SHEET_PATH = "assets/oat_skill2.png"
     SHEET_TIME = 1.5
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        caster.add_status("creatine", self.BUFF_TIME)
-        caster.hp += self.HEAL                      
+        caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
+        caster.hp += self.HEAL
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "cast", self.SHEET_TIME)
         caster.burst(20, S.WHITE, 240)
@@ -702,46 +668,62 @@ class Beastquake(BaseSkill):
     ENERGY_COST = 30.0
     ICON = "skill/oat_iconskill_3.png"
     WAVE_SPEED = 400
-    SHEET_PATH = "imageFolder/oat_skill3.png"
-    SHEET_TIME = 1.6
+    SHEET_PATH = "assets/oat_skill3.png"
+    SHEET_TIME = 1.0
+    PROJ_KNOCKBACK = (260, -50)
+    PROJ_STUN = 0.8
 
     def __init__(self) -> None:
         super().__init__()
         self._caster: Optional[Fighter] = None
         self._damage = 0.0
+        self._cancelled = False
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
-        mult = caster.outgoing_damage_multiplier()
+        self.cancel_timers("beastquake")
 
+        mult = caster.outgoing_damage_multiplier()
         self._caster = caster
-        self._damage = 10 * mult
+        self._damage = 11 * mult
+        self._cancelled = False
+
         caster.vel.x = 0
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "cast", self.SHEET_TIME)
 
-        # Initial close-range impact.
         caster.hitbox.arm(
             damage=(5 + 5 * caster.power) * mult,
-            width=70, height=60,
-            offset_x=70, offset_y=70,
+            width=85, height=60, offset_x=70, offset_y=70,
             windup=0.1, active=0.15,
-            knockback=(850, -200),
-            unblockable=True,
-            stun=0.5,
-            tags={"cast"},
+            knockback=(850, -200), unblockable=True,
+            stun=1.0, tags={"cast"},
         )
 
         caster.burst(30, S.WHITE, 380)
 
-        # Spawn the quake after the animation (SHEET_TIME) finishes.
-        self.start_timer(self.SHEET_TIME, self._spawn_quake)
+        self.start_timer(self.SHEET_TIME, self._spawn_quake,key="beastquake")
+
+    def update(self, dt: float) -> None:
+        caster = self._caster
+        if caster is not None and not self._cancelled:
+            if caster.is_ko or caster.state_machine.state == State.HIT:
+                self._cancelled = True
+                self.cancel_timers("beastquake")
+
+        super().update(dt)
 
     def _spawn_quake(self) -> None:
         caster = self._caster
-        if caster is None or caster.is_ko or caster.world is None:
+
+        if (
+            self._cancelled
+            or caster is None
+            or caster.is_ko
+            or caster.world is None
+        ):
             return
 
-        quake = QuakeProjectile(
+        caster.world.spawn_projectile(QuakeProjectile(
             caster,
             caster.rect.centerx + caster.facing * 60,
             caster.rect.bottom,
@@ -751,10 +733,16 @@ class Beastquake(BaseSkill):
             sprite="quake_projectile.png",
             lifespan=10.0,
             size=(140, 80),
-        )
-        caster.world.spawn_projectile(quake)
+            knockback=self.PROJ_KNOCKBACK,
+            stun=self.PROJ_STUN,
+        ))
+
         caster.burst(20, S.WHITE, 300)
 
+    def reset(self) -> None:
+        super().reset()
+        self._cancelled = True
+        self._caster = None
 
 # ================================================================== Jin
 class BottleBomb(BaseSkill):
@@ -763,9 +751,9 @@ class BottleBomb(BaseSkill):
     COOLDOWN = 9.0
     ENERGY_COST = 30.0
     ICON = "skill/jinn_iconskill_1.png"
-    SHEET_PATH = "imageFolder/jinn_skill1.png"
+    SHEET_PATH = "assets/jinn_skill1.png"
     SHEET_TIME = 0.6
-    STUN_TIME = 3.2
+    STUN_TIME = 1.4
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
@@ -779,35 +767,34 @@ class BottleBomb(BaseSkill):
         self.play_pose(caster, "throw", self.SHEET_TIME)
         caster.burst(10, S.WHITE, 220)
 
+
 class GangsterCharm(BaseSkill):
     NAME = "Gangster Charm"
     DESCRIPTION = "Performs Jin’s signature hair flip, releasing a mysterious aura that pulls nearby enemies toward him, inflicting a debuff and briefly stunning"
-    COOLDOWN = 8.0
+    COOLDOWN = 5.0
     ENERGY_COST = 35.0
     ICON = "skill/jinn_iconskill_3.png"
-    SHEET_PATH = "imageFolder/jinn_skill2.png"
+    SHEET_PATH = "assets/jinn_skill2.png"
     SHEET_TIME = 1.0
     WAVE_SPEED = 800
+    PROJ_KNOCKBACK = (-1200, -500)
+    PROJ_STUN = 1.0
 
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "rush", self.SHEET_TIME)
-        for vy in range(-150, 151, 30):
-            spark = SparkProjectile(
-                caster,
-                caster.rect.centerx,
-                caster.rect.centery,
-                vx=self.WAVE_SPEED * caster.facing,
-                vy=vy,
-                damage=caster.power / 5,
-                sprite="spark_projectile.png",
-                lifespan=25.0,
-                size=(20, 20)
-            )
-
-            if caster.world is not None:
-                caster.world.spawn_projectile(spark)
+        if caster.world is not None:
+            for vy in range(-150, 151, 30):
+                caster.world.spawn_projectile(SparkProjectile(
+                    caster, caster.rect.centerx, caster.rect.centery,
+                    vx=self.WAVE_SPEED * caster.facing, vy=vy,
+                    damage=caster.power / 5, sprite="spark_projectile.png",
+                    lifespan=25.0, size=(20, 20),
+                    knockback=self.PROJ_KNOCKBACK,
+                    stun=self.PROJ_STUN,
+                ))
         caster.burst(26, S.WHITE, 340)
+
 
 class HellRiderRush(BaseSkill):
     NAME = "Hell Rider Rush"
@@ -815,7 +802,7 @@ class HellRiderRush(BaseSkill):
     COOLDOWN = 7.0
     ENERGY_COST = 30.0
     ICON = "skill/jinn_iconskill_2.png"
-    SHEET_PATH = "imageFolder/jinn_skill3.png"
+    SHEET_PATH = "assets/jinn_skill3.png"
     SHEET_TIME = 1.0
     DASH_SPEED = 600.0
     DASH_DISTANCE = 750.0
@@ -827,11 +814,11 @@ class HellRiderRush(BaseSkill):
         caster.vel.x = caster.facing * self.DASH_SPEED
         caster.vel.y = -self.JUMP_HEIGHT
         caster.hitbox.arm(
-            damage=(10 + 10 * caster.power) * caster.outgoing_damage_multiplier(),
+            damage=(7.5 + 7.5 * caster.power) * caster.outgoing_damage_multiplier(),
             width=110, height=100, offset_x=60, offset_y=105,
             windup=0.05, active=self.SHEET_TIME,
-            knockback=(520, -260), stun=1.0,
+            knockback=(520, -260), stun=0.75, unblockable=True,
             tags={"chomp"},
         )
         self.play_pose(caster, "rush", self.SHEET_TIME)
-        caster.burst(14, S.YELLOW if hasattr(S, "YELLOW") else S.P1_COLOR, 260)
+        caster.burst(14, S.P1_COLOR, 260)

@@ -8,6 +8,7 @@ import sys
 from abc import ABC, abstractmethod
 from typing import Optional
 
+import random
 import pygame
 
 import settings as S
@@ -15,7 +16,6 @@ from combat import BattleWorld
 from component import make_player_one_controller, make_player_two_controller
 from entities import ( FloatingText, Fighter, Jack, Art, Pao, Piya, Oat, Jin, Night, Poom )
 from events import EventDispatcher
-from stage import Stage
 from ui import ComboBanner, FighterCard, HUD, RosterGrid, draw_text, load_image
 
 ROSTER = [ Jack, Art, Pao, Piya, Oat, Jin, Night, Poom ]
@@ -27,8 +27,8 @@ class Scene(ABC):
     @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None: ...
 
-    @abstractmethod
-    def update(self, dt: float) -> None: ...
+    def update(self, dt: float) -> None:
+        pass
 
     @abstractmethod
     def draw(self, surface: pygame.Surface) -> None: ...
@@ -72,7 +72,6 @@ class MenuScene(Scene):
             for i, line in enumerate(lines):
                 draw_text(surface, line, 12 if i else 13, col if i == 0 else S.WHITE, (x, 396 + i * 24), "midtop")
 
-
 class SelectScene(Scene):
     def __init__(self, game: "Game") -> None:
         super().__init__(game)
@@ -89,27 +88,15 @@ class SelectScene(Scene):
             FighterCard(pygame.Rect(880, 90, 380, 560), S.P2_COLOR, "2", True),
         )
 
-
     def _preview(self, player: int) -> Optional[Fighter]:
         entry = ROSTER[self._cursor[player]]
-
         if not entry.PLAYABLE:  
             return None
-
         key = (player, entry.NAME)
-
         if key not in self._previews:
             color = S.P1_COLOR if player == 0 else S.P2_COLOR
-
-            self._previews[key] = entry(
-                color,
-                self.game.controllers[player],
-                EventDispatcher(),
-                tag=f"{player + 1}P"
-            )
-
+            self._previews[key] = entry(color, self.game.controllers[player], EventDispatcher(), tag=f"{player + 1}P")
         return self._previews[key]
-
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type != pygame.KEYDOWN:
@@ -135,12 +122,8 @@ class SelectScene(Scene):
         elif self._countdown is not None:
             self._countdown -= dt
             if self._countdown <= 0:
-                e1, e2 = ROSTER[self._cursor[0]], ROSTER[self._cursor[1]]
-                c1 = e1
-                c2 = e2
-
-                if c1 is not None and c2 is not None:
-                    self.game.change_scene(BattleScene(self.game, c1, c2))
+                self.game.change_scene(BattleScene(self.game, ROSTER[self._cursor[0]], ROSTER[self._cursor[1]]))
+   
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(S.BG)
         draw_text(surface, "SELECT YOUR FIGHTER", 36, S.WHITE, (640, 12), "midtop", display=True)
@@ -153,6 +136,22 @@ class SelectScene(Scene):
         if self._countdown is not None:
             draw_text(surface, "FIGHT!", 24, S.GOLD, (640, 70), "midtop", display=True)
 
+MAPS = [
+    ("Classroom", "assets/map1.png"),
+    ("Library", "assets/map2.png"),
+    ("Nightclub", "assets/map3.png"),
+    ("Green Canteen", "assets/map4.png"),
+]
+
+class Stage:
+    def __init__(self, map_index: int | None = None) -> None:
+        self.rect = S.ARENA.copy()
+        self.NAME, path = random.choice(MAPS)
+        self._bg = load_image(path, self.rect.size)
+
+    def draw(self, surface: pygame.Surface, t: float = 0.0) -> None:
+        surface.blit(self._bg, self.rect.topleft)
+        pygame.draw.rect(surface, S.WHITE, self.rect, 1)
 
 class BattleScene(Scene):
     INTRO_TIME = 1.5
@@ -179,7 +178,6 @@ class BattleScene(Scene):
         self.dispatcher.subscribe("on_ko", self._on_ko)
         self.wins = [0, 0]
         self.round_no = 0
-        self._t = 0.0
         self._banner = ""
         self._start_round()
 
@@ -225,7 +223,6 @@ class BattleScene(Scene):
                 f.handle_event(event)
 
     def update(self, dt: float) -> None:
-        self._t += dt
         self.phase_time += dt
         if self.phase == "intro" and self.phase_time >= self.INTRO_TIME:
             self.phase, self.phase_time = "fight", 0.0
@@ -248,7 +245,7 @@ class BattleScene(Scene):
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(S.BG)
         surface.set_clip(S.ARENA)
-        self.stage.draw(surface, self._t)
+        self.stage.draw(surface)
         self.world.draw(surface)
         surface.set_clip(None)
         self.combo.draw(surface)
@@ -279,9 +276,6 @@ class GameOverScene(Scene):
         elif event.key == pygame.K_ESCAPE:
             self.game.change_scene(MenuScene(self.game))
 
-    def update(self, dt: float) -> None:
-        pass
-
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(S.BG)
         panel = pygame.Rect(0, 0, S.WIDTH, S.HEIGHT)
@@ -293,7 +287,6 @@ class GameOverScene(Scene):
         draw_text(surface, f"{cls.NAME} WINS", 56, col, (640, 220), "midtop", display=True)
         draw_text(surface, f"PLAYER {self.winner + 1} • {cls.TITLE}", 14, S.WHITE, (640, 320), "midtop")
         draw_text(surface, "ENTER  rematch      C  character select      ESC  menu", 13, S.GREY, (640, 420), "midtop")
-
 
 class Game:
     def __init__(self) -> None:

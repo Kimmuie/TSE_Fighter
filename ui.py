@@ -34,7 +34,7 @@ def load_image(path: str, size: tuple[int, int] | None = None, label: str = "", 
         return _image_cache[key]
     full = path if os.path.isabs(path) else os.path.join(_BASE, path)
     surf: Optional[pygame.Surface] = None
-    fallback = os.path.join(_BASE, "imageFolder", "emptyImage.png")
+    fallback = os.path.join(_BASE, "assets", "emptyImage.png")
     for candidate in (full, fallback):
         if candidate and os.path.isfile(candidate):
             try:
@@ -288,7 +288,7 @@ class FighterCard:
                   badge.center, "center")
 
         port = pygame.Rect(r.x + 16, r.y + 44, r.w - 32, 140)
-        img = load_image(portrait_path or "imageFolder/emptyImage.png", port.size, f"PORTRAIT {name}", col)
+        img = load_image(portrait_path or "assets/emptyImage.png", port.size, f"PORTRAIT {name}", col)
         surface.blit(img, port)
         pygame.draw.rect(surface, col, port, 1)
 

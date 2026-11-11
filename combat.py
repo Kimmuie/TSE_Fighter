@@ -25,12 +25,9 @@ class CollisionEngine:
             for defender in fighters:
                 if defender is attacker or defender.is_ko:
                     continue
-                if box.colliderect(defender.rect):
-                    hit = attacker.hitbox.build_hit(attacker)
-                    if defender.take_hit(hit):
-                        attacker.hitbox.mark_hit()
-                        attacker.on_hit_landed(hit, defender)
-                        break
+                if box.colliderect(defender.rect) and defender.take_hit(attacker.hitbox.build_hit(attacker)):
+                    attacker.hitbox.mark_hit()
+                    break
 
     def _projectiles(self, fighters: list[Fighter], projectiles: Iterable[Projectile]) -> None:
         for proj in list(projectiles):
@@ -39,7 +36,6 @@ class CollisionEngine:
                     continue
                 if proj.rect.colliderect(target.rect) and target.take_hit(proj.build_hit()):
                     proj.on_hit(target)
-                    proj.owner.on_hit_landed(proj.build_hit(), target)
                     proj.kill()
                     break
 
