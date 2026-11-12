@@ -1,83 +1,102 @@
-# STREET CLASH — 2-player Pygame fighter
+# TSE Fighter
+
+<p align="start">
+
+   <img src="https://img.shields.io/badge/download-EXE File-blue" />
+  <img src="https://img.shields.io/github/stars/Kimmuie/TSE_Fighter?style=social" />
+</p>
+
+
+## ✨ Overview
+**TSE Fighter** is a fast-paced, Street Fighter-style 2D fighting game built in Python using **Pygame**, developed as a final project for an **Object-Oriented Programming (OOP)** course.
+
+Inspired by life at the **Thammasat School of Engineering (TSE)**, every fighter in the roster is based on real people from the faculty—complete with custom stages modeled after familiar campus spots and special skills that parody their signature habits and behaviors.
+
+Jump straight into the action from the launch screen, pick your fighter, and battle it out in classic head-to-head arcade combat—available as a standalone Windows executable or directly from source.
+
+
+
+## 📥 Download
+
+### GitHub Releases (Recommended)
+
+Download the latest exe. from the Releases page.
+
+https://github.com/Kimmuie/TSE_Fighter/releases
+
+### Local Download
+
+Install TSE Fighter directly from repository.
 
 ```
 pip install pygame>=2.5
 python main.py
 ```
 
-## Folder structure
+## 🖥 Built With
 
-```
-assets/          # portraits, sprite sheets, maps, kunai, emptyImage
-main.py               # scenes + game loop
-ui.py                 # HUD, cards, fonts, image loader
-character.py          # character data (name, title, images, stats)
-component.py          # StateMachine, Hitbox, InputController
-skill.py              # skill logic
-entities.py           # fighters, projectiles, particles
-combat.py             # collision + BattleWorld
-events.py             # EventDispatcher + HitInfo
-stage.py              # background maps
-settings.py           # constants
-```
+  <table>
+  <tr align="center">
+    <td width="100">
+      <a href="https://react.dev" title="Python">
+        <img src="https://skillicons.dev/icons?i=py" width="48" alt="Python" />
+      </a>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>Python</td>
+  </tr>
+</table>
 
-## Controls
+## 📸 Screenshots
 
-| | Player 1 | Player 2 |
-|---|---|---|
-| Move / jump / guard | A D / W / S | Arrows |
-| Attack | F | Right Shift (or Numpad 0) |
-| Skills | Q  E  C | Num 1 2 3 (or 1 2 3) |
+<table>
+<tr>
+<td align="center">
+<img src="./docs/UI1.png" width="100%">
+<br><b>Launch Page</b>
+</td>
 
-Select: move cursor with move keys, confirm with Attack. Best of 3 rounds.
+<td align="center">
+<img src="./docs/UI2.png" width="100%">
+<br><b>Character Selection</b>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="./docs/UI3.png" width="100%">
+<br><b>Fighting Scene</b>
+</td>
 
-4 maps rotate each round. Characters use sprite sheets (idle / attack / ko).
-Skill icons use `emptyImage.png`. Kunai is an image.
+<td align="center">
+<img src="./docs/UI4.png" width="100%">
+<br><b>Fighting Scene</b>
+</td>
+</tr>
+</table>
 
-# BrainStack
+## 📸 UML Diagram
 
-### 💡 What is [BrainStack](https://brain-stack-theta.vercel.app/)?
-**BrainStack Website** is a collaborative brainstorming platform designed to make group ideation more organized, inclusive, and efficient. It addresses the common "chaos" of brainstorming where ideas get lost in chat histories or certain voices dominate the conversation by providing a structured, real-time environment for teams to propose, vote on, and refine ideas.Whether you are a student working on a group project or a project manager leading a sprint, BrainStack helps you move from a messy pile of thoughts to a clear, actionable "Top Idea".
-<br>
+<table>
+<tr>
+<td align="center">
+<img src="./docs/UML3.png" width="100%">
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="./docs/UML1.png" width="100%">
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="./docs/UML2.png" width="100%">
+</td>
+</tr>
+</table>
 
-### 🔗 Live Website: https://brain-stack-theta.vercel.app/
+## ⭐ Support
 
-### 🚀 Features
-1. **Collaborative Workspaces**
-  - User Authentication: Integrated with Firebase Auth for a personalized experience
-  - Secure Access: Join groups easily via unique codes or invite links
-  - Real-time Interaction: Propose ideas and see feedback from teammates instantly.
-2. **Structured Ideation Tools**
-  - Flashcard Voting: Ideas are presented as a deck of cards. Users can quickly click to "Agree" or "Disagree," reducing decision paralysis.
-  - Problem Context: Keep the goal in sight with a "Question Card" that displays the project task while you brainstorm.
-  - Discussion Threads: Deep-dive into specific ideas with integrated micro-comments.
-3. **Data-Driven Selection**
-  - All Idea Overview: A dashboard that summarizes voting results, showing Upvotes, Downvotes, and Comment counts.
-  - Smart Sorting: Automatically rank ideas by quality or engagement (votes/comments) to find the best concepts quickly.
-  - List/Mindmap View: A visual canvas to see the relationship between different tasks and sub-ideas.
+If you enjoy TSE Fighter, consider giving this repository a ⭐.
 
-### 📈 Future Improvements
-- AI-Powered Refactoring: Use Generative AI to merging/enhancing rough ideas into professional action plans.
-- AI Critic: Automatically identify potential risks or "pain points" within proposed ideas.
-<br>
-<br>
-
-### 🛠️ Tech Stack
-<div>
-  <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=react,tailwind,firebase,mongodb,vercel" />
-  </a>
-</div>
-
-### 🖥️ Website Interface
-<div>
-  <img src="./illustration/UI1.jpg"  title="UI" height="210"/>
-  <img src="./illustration/UI2.jpg"  title="UI" height="210"/>
-  <img src="./illustration/UI3.jpg"  title="UI" height="210"/>
-  <img src="./illustration/UI4.jpg"  title="UI" height="210"/>
-  <img src="./illustration/UI5.jpg"  title="UI" height="210"/>
-  <img src="./illustration/UI6.jpg"  title="UI" height="210"/>
-</div>
-
-## License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+It helps more people discover the project and supports future development.

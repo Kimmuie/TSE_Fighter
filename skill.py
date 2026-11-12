@@ -776,6 +776,8 @@ class GangsterCharm(BaseSkill):
     ICON = "skill/jinn_iconskill_3.png"
     SHEET_PATH = "assets/jinn_skill2.png"
     SHEET_TIME = 1.0
+    BUFF_STATUS = "charmed"
+    BUFF_TIME = 3.0
     WAVE_SPEED = 800
     PROJ_KNOCKBACK = (-1200, -500)
     PROJ_STUN = 1.0
@@ -783,6 +785,7 @@ class GangsterCharm(BaseSkill):
     def execute(self, caster: Fighter, target: Fighter) -> None:
         caster.state_machine.change(State.CAST, lock=self.SHEET_TIME)
         self.play_pose(caster, "rush", self.SHEET_TIME)
+        caster.add_status(self.BUFF_STATUS, self.BUFF_TIME)
         if caster.world is not None:
             for vy in range(-150, 151, 30):
                 caster.world.spawn_projectile(SparkProjectile(

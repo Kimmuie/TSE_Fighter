@@ -1,0 +1,467 @@
+@startuml 1_core_architecture
+title TSE Fighter — Core Architecture (entities / combat / events / component)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #333333
+  ArrowColor #333333
+}
+hide empty members
+
+package "events.py" #F3F3F3 {
+  class EventDispatcher {
+    - _listeners : dict[str, list[Listener]]
+    + subscribe(event_name, listener)
+    + emit(event_name, **payload)
+  }
+  class HitInfo {
+    + attacker : Fighter
+    + damage : float
+    + knockback : Vector2
+    + direction : int
+    + unblockable : bool
+    + stun : float
+    + tags : frozenset[str]
+  }
+}
+
+package "component.py" #F3F3F3 {
+  enum State {
+    IDLE
+    WALK
+    JUMP
+    ATTACK
+    CAST
+    HIT
+    KO
+  }
+  class StateMachine {
+    - _state : State
+    - _lock : float
+    + state : State {readOnly}
+    + can_act : bool {readOnly}
+    + change(new_state, lock)
+    + locomote(new_state)
+    + update(dt)
+  }
+  class Hitbox {
+    - _p : dict
+    - _timer : float
+    - _has_hit : bool
+    + is_active : bool {readOnly}
+    + arm(damage, width, height, offset_x, offset_y, windup, active, ...)
+    + clear()
+    + update(dt)
+    + mark_hit()
+    + rect_for(owner) : Rect
+    + build_hit(owner) : HitInfo
+  }
+  class InputController {
+    - _keymap : dict[str, tuple[int]]
+    - _labels : dict[str, str]
+    + label(action) : str
+    + action_for_event(event) : str
+    + is_held(action, pressed) : bool
+  }
+}
+
+package "entities.py" #F3F3F3 {
+  abstract class GameObject {
+    + pos : Vector2
+    + vel : Vector2
+    + gravity : float
+    + on_ground : bool
+    + rect : Rect
+    + set_x(x)
+    + update(dt)
+    + {abstract} draw(surface)
+  }
+  class Particle
+  class FloatingText
+  class SmokeScreen
+  class Projectile {
+    + owner : Fighter
+    + damage : float
+    + KNOCKBACK : tuple
+    + STUN : float
+    + build_hit() : HitInfo
+    + on_hit(target)
+  }
+  abstract class Fighter {
+    + NAME / TITLE / BASE_STATS
+    + PLAYABLE : bool
+    + color, tag, facing : int
+    + input_enabled : bool
+    + hp, energy, stamina : float
+    + skills : list[BaseSkill]
+    + opponent : Fighter
+    + world : BattleWorld
+    + {abstract} create_skills() : list[BaseSkill]
+    + handle_event(event)
+    + perform(action)
+    + basic_attack()
+    + take_hit(hit : HitInfo) : bool
+    + add_status() / has_status() / remove_status()
+    + modify_incoming_damage() / outgoing_damage_multiplier()
+    + play_pose() / burst() / reset()
+    + update(dt) / draw(surface)
+  }
+}
+
+package "combat.py" #F3F3F3 {
+  class CollisionEngine {
+    + resolve(fighters, projectiles)
+    - _melee()
+    - _projectiles()
+    - _separate()
+  }
+  class BattleWorld {
+    + fighters : Group
+    + projectiles : Group
+    + effects : Group
+    + add_fighter(fighter)
+    + spawn_projectile(proj)
+    + spawn_effect(effect)
+    + spawn_particles(...)
+    + update(dt) / draw(surface)
+  }
+}
+
+class "pygame.sprite.Sprite" as Sprite <<external>>
+
+Sprite <|-- GameObject
+GameObject <|-- Particle
+GameObject <|-- FloatingText
+GameObject <|-- SmokeScreen
+GameObject <|-- Projectile
+GameObject <|-- Fighter
+
+Fighter *-- "1" StateMachine
+Fighter *-- "1" Hitbox
+Fighter o-- "1" InputController
+Fighter o-- "1" EventDispatcher : emits on_hit / on_ko
+Fighter "1" -- "1" Fighter : opponent
+Fighter --> BattleWorld : world
+StateMachine ..> State
+Hitbox ..> HitInfo : creates
+Projectile ..> HitInfo : creates
+Fighter ..> HitInfo : take_hit()
+Projectile --> Fighter : owner
+
+BattleWorld *-- CollisionEngine
+BattleWorld o-- "2" Fighter
+BattleWorld o-- "*" Projectile
+BattleWorld o-- "*" GameObject : effects
+BattleWorld o-- EventDispatcher
+CollisionEngine ..> Fighter
+CollisionEngine ..> Projectile
+@enduml
+
+
+@startuml 2_fighters_and_skills
+title TSE Fighter — Fighters, Projectiles & Skills
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+hide empty members
+
+abstract class Fighter
+class Jack {
+  + attack_speed  // buff: kinetic
+  + move_speed_multiplier  // buff: kinetic
+}
+class Art
+class Pao
+class Piya {
+  + modify_incoming_damage()  // status: veiled
+}
+class Oat {
+  + modify_incoming_damage()  // status: creatine
+  + outgoing_damage_multiplier()  // status: creatine
+}
+class Jin
+class Night <<coming soon>>
+class Poom  <<coming soon>>
+
+Fighter <|-- Jack
+Fighter <|-- Art
+Fighter <|-- Pao
+Fighter <|-- Piya
+Fighter <|-- Oat
+Fighter <|-- Jin
+Fighter <|-- Night
+Fighter <|-- Poom
+
+abstract class BaseSkill {
+  + NAME, DESCRIPTION, COOLDOWN, ENERGY_COST, ICON
+  + SHEET_PATH, SHEET_TIME, SHEET_COLUMNS
+  + key_label : str
+  - _cooldown_left : float
+  - _frames : list[Surface]
+  - _timers : list[dict]
+  + cooldown_left, cooldown_ratio
+  + bind(key_label)
+  + load_sprite()
+  + play_pose(caster, pose, length)
+  + start_timer(delay, callback, key)
+  + cancel_timers(key)
+  + can_cast(caster) : bool
+  + try_cast(caster, target) : bool
+  + update(dt) / reset()
+  + on_jump(caster) : bool
+  + {abstract} execute(caster, target)
+}
+
+Fighter "1" *-- "3" BaseSkill : skills
+
+package "Jack skills" #F3F3F3 {
+  class PacMan_Chomp
+  class Power_Pellet
+  class GhostFrenzy {
+  - _caster
+  - _remaining
+  - _hit()
+}
+}
+package "Art skills" #F3F3F3 {
+  class CriticalRoast
+  class ShutUp
+  class EmotionalDamage
+}
+package "Pao skills" #F3F3F3 {
+  class CPUSmash
+  class OverclockCharge {
+  - _charging
+  - _dashing
+  - _dash_start_x
+  - _start_dash()
+  - _end()
+}
+  class BlueScreen_Crash {
+  - _caster
+  - _dash()
+  - _shockwave()
+}
+}
+package "Piya skills" #F3F3F3 {
+  class SRS_Barrage {
+  - _pending_target
+  + mark_target(target)
+  + on_jump(caster)
+}
+  class ShadowVeil
+  class SuckerPunch {
+  - _target
+  - _reappear()
+}
+}
+package "Oat skills" #F3F3F3 {
+  class DoubleMuscle_Rush {
+  - _remaining
+  - _hit()
+}
+  class CreatineShake
+  class Beastquake {
+  - _damage
+  - _spawn_quake()
+}
+}
+package "Jin skills" #F3F3F3 {
+  class BottleBomb
+  class GangsterCharm
+  class HellRiderRush
+}
+
+BaseSkill <|-- PacMan_Chomp
+BaseSkill <|-- Power_Pellet
+BaseSkill <|-- GhostFrenzy
+BaseSkill <|-- CriticalRoast
+BaseSkill <|-- ShutUp
+BaseSkill <|-- EmotionalDamage
+BaseSkill <|-- CPUSmash
+BaseSkill <|-- OverclockCharge
+BaseSkill <|-- BlueScreen_Crash
+BaseSkill <|-- SRS_Barrage
+BaseSkill <|-- ShadowVeil
+BaseSkill <|-- SuckerPunch
+BaseSkill <|-- DoubleMuscle_Rush
+BaseSkill <|-- CreatineShake
+BaseSkill <|-- Beastquake
+BaseSkill <|-- BottleBomb
+BaseSkill <|-- GangsterCharm
+BaseSkill <|-- HellRiderRush
+
+Jack ..> PacMan_Chomp : create_skills()
+Jack ..> Power_Pellet
+Jack ..> GhostFrenzy
+Art ..> CriticalRoast
+Art ..> ShutUp
+Art ..> EmotionalDamage
+Pao ..> CPUSmash
+Pao ..> OverclockCharge
+Pao ..> BlueScreen_Crash
+Piya ..> SRS_Barrage
+Piya ..> ShadowVeil
+Piya ..> SuckerPunch
+Oat ..> DoubleMuscle_Rush
+Oat ..> CreatineShake
+Oat ..> Beastquake
+Jin ..> BottleBomb
+Jin ..> GangsterCharm
+Jin ..> HellRiderRush
+
+class Projectile {
+  + owner : Fighter
+  + damage : float
+  + KNOCKBACK : tuple
+  + STUN : float
+  + build_hit() : HitInfo
+  + on_hit(target)
+}
+class SpriteProjectile {
+  - _img : Surface
+  + draw(surface)
+}
+class SoundwaveProjectile
+class QuakeProjectile
+class SparkProjectile
+class SRSDocumentProjectile {
+  + skill : SRS_Barrage
+  + on_hit(target)
+}
+class SmokeScreen
+class FloatingText
+
+Projectile <|-- SpriteProjectile
+SpriteProjectile <|-- SoundwaveProjectile
+SpriteProjectile <|-- QuakeProjectile
+SpriteProjectile <|-- SparkProjectile
+SpriteProjectile <|-- SRSDocumentProjectile
+
+CriticalRoast ..> SoundwaveProjectile : spawns
+EmotionalDamage ..> SoundwaveProjectile : spawns
+EmotionalDamage ..> FloatingText : spawns
+Beastquake ..> QuakeProjectile : spawns
+GangsterCharm ..> SparkProjectile : spawns
+SRS_Barrage ..> SRSDocumentProjectile : spawns
+SRSDocumentProjectile --> SRS_Barrage : mark_target()
+ShadowVeil ..> SmokeScreen : spawns
+@enduml
+
+
+@startuml 3_scenes_and_ui
+title TSE Fighter — Scenes & UI (main.py / ui.py)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+hide empty members
+
+abstract class Scene {
+  + game : Game
+  + {abstract} handle_event(event)
+  + update(dt)
+  + {abstract} draw(surface)
+}
+class MenuScene {
+  - _t : float
+}
+class SelectScene {
+  - _cursor : list[int]
+  - _ready : list[bool]
+  - _countdown : float
+  - _previews : dict
+  + grid : RosterGrid
+  + cards : tuple[FighterCard]
+  - _preview(player) : Fighter
+}
+class BattleScene {
+  + INTRO_TIME, END_TIME
+  + phase : str
+  + time_left : float
+  + round_no : int
+  + wins : list[int]
+  - _start_round()
+  - _end_round(banner, winner)
+  - _on_hit() / _on_skill_cast() / _on_ko()
+}
+class GameOverScene {
+  + winner : int
+}
+class Stage {
+  + rect : Rect
+  + NAME : str
+  + draw(surface)
+}
+class Game {
+  + screen, clock
+  + running : bool
+  + controllers : tuple[InputController]
+  + scene : Scene
+  + change_scene(scene)
+  + run()
+}
+
+class HUD {
+  + update(dt, f1, f2)
+  + draw(surface, f1, f2, time_left, round_no, wins, arena_name)
+}
+class HealthBar {
+  + ratio : float
+  + align_right : bool
+  + update(dt) / draw(surface)
+}
+class SkillBar {
+  + draw(surface, fighter)
+}
+class ComboBanner {
+  + CLASH_WINDOW, DISPLAY_TIME
+  + on_hit(attacker, damage, hit)
+  + update(dt) / draw(surface)
+}
+class FighterCard {
+  + draw(surface, name, title, preview, ready, portrait_path)
+}
+class RosterGrid {
+  + cell(i) : Rect
+  + draw(surface, cursors, ready)
+}
+
+class EventDispatcher
+class BattleWorld
+class Fighter
+class InputController
+class HitInfo
+
+Scene <|-- MenuScene
+Scene <|-- SelectScene
+Scene <|-- BattleScene
+Scene <|-- GameOverScene
+
+Game o-- "1" Scene : current
+Game *-- "2" InputController
+Scene --> Game
+MenuScene ..> SelectScene : change_scene
+SelectScene ..> BattleScene : change_scene
+BattleScene ..> GameOverScene : change_scene
+GameOverScene ..> BattleScene : rematch
+GameOverScene ..> SelectScene
+GameOverScene ..> MenuScene
+
+SelectScene *-- RosterGrid
+SelectScene *-- "2" FighterCard
+SelectScene ..> Fighter : preview
+
+BattleScene *-- BattleWorld
+BattleScene *-- Stage
+BattleScene *-- HUD
+BattleScene *-- ComboBanner
+BattleScene *-- EventDispatcher
+BattleScene o-- "2" Fighter
+
+HUD *-- "2" HealthBar
+HUD *-- "2" SkillBar
+SkillBar ..> Fighter
+ComboBanner ..> HitInfo
+EventDispatcher ..> BattleScene : on_hit / on_ko / on_skill_cast
+EventDispatcher ..> ComboBanner : on_hit
+@enduml

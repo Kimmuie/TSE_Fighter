@@ -215,6 +215,7 @@ class Fighter(GameObject):
         "veiled": S.WHITE,
         "kinetic": S.BLUE,
         "creatine": S.RED,
+        "charmed": S.GOLD,
     }
     DEFAULT_STATUS_COLOR = (190, 190, 190)
 
@@ -665,6 +666,11 @@ class Jin(Fighter):
     def create_skills(self) -> list["BaseSkill"]:
         from skill import BottleBomb, GangsterCharm, HellRiderRush
         return [BottleBomb(), GangsterCharm(), HellRiderRush()]
+    
+    def modify_incoming_damage(self, damage: float, hit: HitInfo, blocked: bool) -> float:
+        if not self.has_status("charmed"):
+            return damage
+        return damage * 0.75
 
 
 class Night(Fighter):
