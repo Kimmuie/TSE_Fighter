@@ -417,15 +417,11 @@ Sprite Sheet:
 <table>
 <tr>
 <td align="center">
-<img src="./docs/img_2.png" width="100%">
+<img src="./docs/img_2.jpg" width="100%">
 </td>
 
 <td align="center">
-<img src="./docs/img_3.png" width="100%">
-</td>
-
-<td align="center">
-<img src="./docs/img_6.png" width="100%">
+<img src="./docs/img_3.jpg" width="100%">
 </td>
 </tr>
 </table>
@@ -475,15 +471,15 @@ Sprite Sheet:
 <table>
 <tr>
 <td align="center">
-<img src="./docs/ss_map1.png" width="100%">
+<img src="./docs/ss_map1.jpg" width="100%">
 </td>
 
 <td align="center">
-<img src="./docs/ss_map2.png" width="100%">
+<img src="./docs/ss_map2.jpg" width="100%">
 </td>
 
 <td align="center">
-<img src="./docs/ss_map3.png" width="100%">
+<img src="./docs/ss_map3.jpg" width="100%">
 </td>
 
 </tr>
@@ -582,11 +578,13 @@ Stats: PWR 90 | DEF 65 | SPD 100
 # Graphic Side (Comparing After Photoshop)
 
 ## Sprite Sheet:
-[Download SpriteSheet.psd](./docs/SpriteSheet.psd)
+[Download SpriteSheet.psd](./docs/SpriteSheet.psd)  
+
+https://drive.google.com/drive/folders/19Gs9E1A28ju4GpmVWEneOSCbItvugZm-?usp=sharing
 <table>
 <tr>
 <td align="center">
-<img src="./docs/ss_1.png" width="100%">
+<img src="./docs/ss_1.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -596,7 +594,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_2.png" width="100%">
+<img src="./docs/ss_2.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -607,7 +605,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_3.png" width="100%">
+<img src="./docs/ss_3.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -616,7 +614,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_4.png" width="100%">
+<img src="./docs/ss_4.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -628,7 +626,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_5.png" width="100%">
+<img src="./docs/ss_5.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -637,7 +635,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_6.png" width="100%">
+<img src="./docs/ss_6.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -650,11 +648,14 @@ Stats: PWR 90 | DEF 65 | SPD 100
 
 
 ## Sprite Sheet Specific Skill:
-[Download SkillSprite.psd](./docs/SkillSprite.psd)
+[Download SkillSprite.psd](./docs/SkillSprite.psd)  
+
+https://drive.google.com/drive/folders/19Gs9E1A28ju4GpmVWEneOSCbItvugZm-?usp=sharing
+
 <table>
 <tr>
 <td align="center">
-<img src="./docs/ss_skill1.png" width="100%">
+<img src="./docs/ss_skill1.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -664,7 +665,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_skill2.png" width="100%">
+<img src="./docs/ss_skill2.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -673,7 +674,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_skill3.png" width="100%">
+<img src="./docs/ss_skill3.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -684,7 +685,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_skill4.png" width="100%">
+<img src="./docs/ss_skill4.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -694,7 +695,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_skill5.png" width="100%">
+<img src="./docs/ss_skill5.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -703,7 +704,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_skill6.png" width="100%">
+<img src="./docs/ss_skill6.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -714,7 +715,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_skill7.png" width="100%">
+<img src="./docs/ss_skill7.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -724,7 +725,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_skill8.png" width="100%">
+<img src="./docs/ss_skill8.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -733,7 +734,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_skill9.png" width="100%">
+<img src="./docs/ss_skill9.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -744,7 +745,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_skill10.png" width="100%">
+<img src="./docs/ss_skill10.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -754,7 +755,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_skill11.png" width="100%">
+<img src="./docs/ss_skill11.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -763,7 +764,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_skill12.png" width="100%">
+<img src="./docs/ss_skill12.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -774,7 +775,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_skill13.png" width="100%">
+<img src="./docs/ss_skill13.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -784,7 +785,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </td>
 
 <td align="center">
-<img src="./docs/ss_skill14.png" width="100%">
+<img src="./docs/ss_skill14.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -793,7 +794,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <br><b>After Photoshop</b>
 </td>
 <td align="center">
-<img src="./docs/ss_skill15.png" width="100%">
+<img src="./docs/ss_skill15.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -808,7 +809,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <table>
 <tr>
 <td align="center">
-<img src="./docs/ss_map1.png" width="100%">
+<img src="./docs/ss_map1.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -821,7 +822,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 
 </td>
 <td align="center">
-<img src="./docs/ss_map2.png" width="100%">
+<img src="./docs/ss_map2.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -832,7 +833,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 </tr>
 <tr>
 <td align="center">
-<img src="./docs/ss_map3.png" width="100%">
+<img src="./docs/ss_map3.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 
@@ -844,7 +845,7 @@ Stats: PWR 90 | DEF 65 | SPD 100
 <tr>
 
 <td align="center">
-<img src="./docs/ss_map4.png" width="100%">
+<img src="./docs/ss_map4.jpg" width="100%">
 <br><b>Before Photoshop</b>
 </td>
 

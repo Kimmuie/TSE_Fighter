@@ -174,7 +174,6 @@ class GhostFrenzy(BaseSkill):
         self._caster, self._remaining = caster, self.HITS
         caster.state_machine.change(State.CAST, lock=self.HITS * self.INTERVAL + 0.25)
         self.play_pose(caster, "rush", self.HITS * self.INTERVAL + 0.2)
-        # ฟันครั้งแรกทันที (delay 0) แล้วต่อด้วยทุก INTERVAL
         self.start_timer(0.0, self._hit, key="frenzy")
 
     def _hit(self) -> None:
