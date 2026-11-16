@@ -1,6 +1,6 @@
 # Code Side
 ##  Prompt:
-<img src="./docs/img_1.png"  title="UI"/>
+<img src="./docs/img_1.jpg"  title="UI"/>
 
 
 ```
@@ -439,17 +439,17 @@ Sprite Sheet:
 <table>
 <tr>
 <td align="center">
-<img src="./assets/jack_portrait.png" width="100%">
+<img src="./docs/portrait_1.jpg" width="100%">
 </td>
 
 <td align="center">
-<img src="./assets/art_portrait.png" width="100%">
+<img src="./docs/portrait_2.jpg" width="100%">
 </td>
 <td align="center">
-<img src="./assets/pao_portrait.png" width="100%">
+<img src="./docs/portrait_3.jpg" width="100%">
 </td>
 <td align="center">
-<img src="./assets/piya_portrait.png" width="100%">
+<img src="./docs/portrait_4.jpg" width="100%">
 </td>
 </tr>
 </table>
@@ -576,6 +576,75 @@ Stats: PWR 90 | DEF 65 | SPD 100
 
 
 # Graphic Side (Comparing After Photoshop)
+
+## Sprite Portrait:
+[Download SpritePortrait.psd](./docs/SpritePortrait.psd)  
+
+https://drive.google.com/drive/folders/19Gs9E1A28ju4GpmVWEneOSCbItvugZm-?usp=sharing
+<table>
+<tr>
+<td align="center">
+<img src="./docs/portrait_1.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/jack_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./docs/portrait_2.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/art_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+</tr>
+<tr>
+<td align="center">
+<img src="./docs/portrait_3.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/pao_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+<td align="center">
+<img src="./docs/portrait_4.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/piya_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+
+</tr>
+<tr>
+<td align="center">
+<img src="./docs/portrait_5.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/oat_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+<td align="center">
+<img src="./docs/portrait_6.jpg" width="100%">
+<br><b>Before Photoshop</b>
+</td>
+
+<td align="center">
+<img src="./assets/jinn_portrait.png" width="100%">
+<br><b>After Photoshop</b>
+</td>
+</tr>
+</table>
 
 ## Sprite Sheet:
 [Download SpriteSheet.psd](./docs/SpriteSheet.psd)  
